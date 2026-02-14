@@ -1,22 +1,7 @@
-import { View, Text, StyleSheet } from 'react-native';
-import { useTranslation } from 'react-i18next';
+import LoginForm from '@/components/auth/LoginForm';
 
 const LoginTab = () => {
-  const { t } = useTranslation();
-
-  return (
-    <View style={styles.container}>
-      <Text>{t('home.welcome')}</Text>
-    </View>
-  );
+  return <LoginForm />;
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
 
 export default LoginTab;

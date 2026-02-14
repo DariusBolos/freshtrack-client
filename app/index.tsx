@@ -2,9 +2,9 @@ import { Redirect } from 'expo-router';
 import '../i18n';
 
 const Index = () => {
-  const user = true;
+  const user = false;
 
-  if (user) {
+  if (!user) {
     return <Redirect href="/login" />;
   }
 

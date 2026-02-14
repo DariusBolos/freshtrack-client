@@ -1,5 +1,26 @@
 {
+  "common": {
+    "save": "Salvează",
+    "cancel": "Anulează",
+    "delete": "Șterge"
+  },
+  "auth": {
+    "login": "Autentificare",
+    "logout": "Deconectare",
+    "register": "Înregistrare",
+    "email": "Email",
+    "password": "Parolă",
+    "firstname": "Prenume",
+    "lastname": "Nume",
+    "sign_into_account": "Conectează-te la contul tău",
+    "dont_have_account": "Nu ai un cont? Înregistrează-te",
+    "forgot_password": "Ai uitat parola?",
+    "create_account": "Creează un cont nou",
+    "validation_required_fields": "Te rugăm să completezi toate câmpurile obligatorii",
+    "validation_email": "Te rugăm să introduci o adresă de email validă",
+    "validation_password": "Parola trebuie să aibă cel puțin 8 caractere și să includă cel puțin o literă și o cifră"
+  },
   "home": {
-    "welcome": "Bun venit!"
+    "welcome": "Bine ai venit!"
   }
 }
