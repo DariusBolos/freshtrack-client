@@ -107,7 +107,7 @@ const RegisterForm = () => {
             />
           </View>
           <View style={styles.footer}>
-            <Button style={styles.registerButton} onPress={handleRegister} disabled={!email || !password || !firstName || !lastName}>
+            <Button style={styles.registerButton} onPress={handleRegister}>
               {t('auth.register')}
             </Button>
           </View>

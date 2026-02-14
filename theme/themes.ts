@@ -1,46 +1,56 @@
 import * as eva from '@eva-design/eva';
 
-const lightTheme = {
+export const lightTheme = {
   ...eva.light,
+  // Primary colors
+  'color-primary-100': '#E8F5E9', // soft green
+  'color-primary-200': '#C8E6C9',
+  'color-primary-300': '#A5D6A7',
+  'color-primary-400': '#81C784',
+  'color-primary-500': '#4CAF50', // main green
+  'color-primary-600': '#43A047',
+  'color-primary-700': '#388E3C',
+  'color-primary-800': '#2E7D32',
+  'color-primary-900': '#1B5E20',
 
-  'color-primary-100': '#FFE8E5',
-  'color-primary-200': '#FFC5BE',
-  'color-primary-300': '#FFA094',
-  'color-primary-400': '#FF7B6B',
-  'color-primary-500': '#FF5A3C', // Main brand
-  'color-primary-600': '#DB4127',
-  'color-primary-700': '#B72D18',
-  'color-primary-800': '#931C0E',
-  'color-primary-900': '#7A1209',
+  // Accent / orange
+  'color-accent-500': '#FF9800',
+  'color-accent-600': '#F57C00',
 
-  'background-basic-color-1': '#FFF8F3', // soft cream
-  'background-basic-color-2': '#FCEEE6',
+  // Backgrounds
+  'background-basic-color-1': '#FFFFFF', // main background
+  'background-basic-color-2': '#FFFDE7', // secondary background
+  'background-basic-color-3': '#F1F8E9', // subtle surfaces
+
+  // Text
+  'text-basic-color': '#333333',
+  'text-disabled-color': '#AAAAAA',
+  'text-hint-color': '#777777',
 };
 
-const darkTheme = {
-  ...eva.dark, // start from Eva Dark base
+export const darkTheme = {
+  // Primary colors (slightly brighter for contrast)
+  'color-primary-100': '#1B5E20',
+  'color-primary-200': '#2E7D32',
+  'color-primary-300': '#388E3C',
+  'color-primary-400': '#43A047',
+  'color-primary-500': '#4CAF50', // main green
+  'color-primary-600': '#81C784',
+  'color-primary-700': '#A5D6A7',
+  'color-primary-800': '#C8E6C9',
+  'color-primary-900': '#E8F5E9',
 
-  // Brand colors (kept similar for recognition, slightly muted for dark mode)
-  'color-primary-100': '#7A1209',
-  'color-primary-200': '#931C0E',
-  'color-primary-300': '#B72D18',
-  'color-primary-400': '#DB4127',
-  'color-primary-500': '#FF5A3C', // Main brand, same as light for consistency
-  'color-primary-600': '#FF7B6B',
-  'color-primary-700': '#FFA094',
-  'color-primary-800': '#FFC5BE',
-  'color-primary-900': '#FFE8E5',
+  // Accent / orange
+  'color-accent-500': '#FF9800',
+  'color-accent-600': '#F57C00',
 
-  // Backgrounds for dark theme
-  'background-basic-color-1': '#121212', // deep dark
-  'background-basic-color-2': '#1E1E1E', // slightly lighter for surfaces
-  'background-basic-color-3': '#2A2A2A', // optional extra surface
-  'background-basic-color-4': '#383838', // optional extra surface
+  // Backgrounds
+  'background-basic-color-1': '#121212', // main dark
+  'background-basic-color-2': '#1E1E1E', // secondary surface
+  'background-basic-color-3': '#2A2A2A', // additional surface
 
-  // Optional text colors (ensure contrast)
+  // Text
   'text-basic-color': '#FFFFFF',
   'text-disabled-color': '#AAAAAA',
   'text-hint-color': '#CCCCCC',
 };
-
-export { lightTheme, darkTheme };

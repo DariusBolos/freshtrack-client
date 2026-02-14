@@ -20,7 +20,20 @@ const LoginForm = () => {
     setSecureTextEntry(!secureTextEntry);
   };
 
+  const validateFields = () => {
+    if (!email || !password) {
+      alert(t('auth.validation_required_fields'));
+      return false;
+    }
+
+    return true;
+  };
+
   const handleLogin = () => {
+    if (!validateFields()) {
+      return;
+    }
+
     setTimeout(() => {
       console.log('Login attempt:', { email, password });
     }, 1500);
@@ -50,7 +63,6 @@ const LoginForm = () => {
             {t('auth.sign_into_account')}
           </Text>
         </View>
-
         <View style={styles.formContainer}>
           <View style={styles.inputContainer}>
             <Input
@@ -74,9 +86,8 @@ const LoginForm = () => {
               <Text style={styles.forgotPassword}>{t('auth.forgot_password')}</Text>
             </TouchableOpacity>
           </View>
-
           <View style={styles.footer}>
-            <Button style={styles.loginButton} onPress={handleLogin} disabled={!email || !password}>
+            <Button style={styles.loginButton} onPress={handleLogin}>
               {t('auth.login')}
             </Button>
             <TouchableOpacity onPress={handleNavigationToRegister}>
