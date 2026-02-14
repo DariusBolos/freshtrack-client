@@ -1,7 +1,7 @@
 import { Stack } from 'expo-router';
 
-const RootLayout = () => {
+const AuthLayout = () => {
   return <Stack screenOptions={{ headerShown: false }} />;
 };
 
-export default RootLayout;
+export default AuthLayout;
