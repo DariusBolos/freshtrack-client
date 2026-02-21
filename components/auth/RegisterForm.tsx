@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useTheme, Layout, Input, Button, Text } from '@ui-kitten/components';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
+import { useRegister } from '@/hooks/auth/useAuth';
 import { TouchableOpacity, StyleSheet, View, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const RegisterForm = () => {
   const theme = useTheme();
@@ -17,6 +19,7 @@ const RegisterForm = () => {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
 
   const { t } = useTranslation();
+  const { mutate } = useRegister();
 
   const toggleSecureEntry = () => {
     setSecureTextEntry(!secureTextEntry);
@@ -46,9 +49,18 @@ const RegisterForm = () => {
       return;
     }
 
-    setTimeout(() => {
-      console.log('register attempt:', { firstName, lastName, email, password });
-    }, 1500);
+    mutate(
+      { firstName, lastName, email, password },
+      {
+        onSuccess: async (response) => {
+          await AsyncStorage.setItem('token', response.data.token);
+          router.push('/home');
+        },
+        onError: (err: any) => {
+          console.log('Registration failed:', err.response?.data?.message);
+        },
+      },
+    );
   };
 
   const renderEmailIcon = () => <FontAwesome5 name="envelope" size={20} color="gray" solid />;

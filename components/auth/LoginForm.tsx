@@ -2,8 +2,10 @@ import { useState } from 'react';
 import { useTheme, Layout, Input, Button, Text } from '@ui-kitten/components';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
+import { useLogin } from '@/hooks/auth/useAuth';
 import { TouchableOpacity, StyleSheet, View, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const LoginForm = () => {
   const theme = useTheme();
@@ -15,6 +17,7 @@ const LoginForm = () => {
   const [secureTextEntry, setSecureTextEntry] = useState(true);
 
   const { t } = useTranslation();
+  const { mutate } = useLogin();
 
   const toggleSecureEntry = () => {
     setSecureTextEntry(!secureTextEntry);
@@ -34,9 +37,18 @@ const LoginForm = () => {
       return;
     }
 
-    setTimeout(() => {
-      console.log('Login attempt:', { email, password });
-    }, 1500);
+    mutate(
+      { email, password },
+      {
+        onSuccess: async (response) => {
+          await AsyncStorage.setItem('token', response.data.token);
+          router.push('/home');
+        },
+        onError: (err: any) => {
+          console.log('Login failed:', err.response?.data?.message);
+        },
+      },
+    );
   };
 
   const handleNavigationToRegister = () => {

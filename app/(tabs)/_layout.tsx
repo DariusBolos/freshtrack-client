@@ -1,11 +1,13 @@
 import { Tabs } from 'expo-router';
 import { FontAwesome5 } from '@expo/vector-icons';
+import { useTheme } from '@ui-kitten/components';
 
 const TabLayout = () => {
   const defaultIconSize = 25;
+  const theme = useTheme();
 
   return (
-    <Tabs screenOptions={{ tabBarActiveTintColor: 'blue' }}>
+    <Tabs screenOptions={{ tabBarActiveTintColor: theme['color-primary-500'] }}>
       <Tabs.Screen
         name="home"
         options={{
