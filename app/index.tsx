@@ -13,6 +13,7 @@ const Index = () => {
         const storedToken = await AsyncStorage.getItem('token');
         setToken(storedToken);
       } catch (err) {
+        console.log('Error reading token', err);
         setToken(null);
       } finally {
         setLoading(false);

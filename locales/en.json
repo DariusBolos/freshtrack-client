@@ -22,5 +22,52 @@
   },
   "home": {
     "welcome": "Welcome!"
+  },
+  "inventory": {
+    "title": "My Inventory",
+    "subtitle": "{{count}} products tracked",
+    "empty": "No products yet.\nScan a receipt to get started!",
+    "expires_on": "Expires",
+    "expires_today": "Expires today",
+    "days_left_one": "{{count}} day left",
+    "days_left_other": "{{count}} days left",
+    "days_left": "{{count}} days left",
+    "days_overdue_one": "{{count}} day overdue",
+    "days_overdue_other": "{{count}} days overdue",
+    "days_overdue": "{{count}} days overdue"
+  },
+  "product_detail": {
+    "not_found": "Product not found",
+    "quantity": "Quantity",
+    "purchased": "Purchased",
+    "expires": "Expires",
+    "generate_recipes": "Generate Recipes",
+    "generate_recipes_hint": "Get recipe ideas based on this ingredient"
+  },
+  "settings": {
+    "title": "Settings",
+    "section_account": "Account",
+    "name": "Name",
+    "email": "Email",
+    "change_password": "Change Password",
+    "section_appearance": "Appearance",
+    "theme": "Theme",
+    "theme_light": "Light",
+    "theme_dark": "Dark",
+    "theme_system": "System",
+    "language": "Language",
+    "section_notifications": "Notifications",
+    "expiry_reminders": "Expiry Reminders",
+    "reminder_days": "Remind Before Expiry",
+    "days_before_one": "{{count}} day before",
+    "days_before_other": "{{count}} days before",
+    "days_before": "{{count}} days before",
+    "section_camera": "Camera & Scanning",
+    "auto_scan": "Auto-Scan Receipts",
+    "save_scan_history": "Save Scan History",
+    "section_data": "Data & Privacy",
+    "clear_data": "Clear All Data",
+    "clear_data_confirm": "This will remove all your scanned products and settings. This action cannot be undone.",
+    "logout_confirm": "Are you sure you want to log out?"
   }
 }

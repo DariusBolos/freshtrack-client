@@ -7,7 +7,23 @@ const TabLayout = () => {
   const theme = useTheme();
 
   return (
-    <Tabs screenOptions={{ tabBarActiveTintColor: theme['color-primary-500'] }}>
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: theme['color-primary-500'],
+        tabBarInactiveTintColor: theme['text-hint-color'],
+        tabBarStyle: {
+          backgroundColor: theme['background-basic-color-2'],
+          borderTopColor: theme['background-basic-color-3'],
+        },
+        headerStyle: {
+          backgroundColor: theme['background-basic-color-2'],
+        },
+        headerTintColor: theme['text-basic-color'],
+        headerTitleStyle: {
+          color: theme['text-basic-color'],
+        },
+      }}
+    >
       <Tabs.Screen
         name="home"
         options={{

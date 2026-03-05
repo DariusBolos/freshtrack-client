@@ -1,20 +1,54 @@
 import * as eva from '@eva-design/eva';
 import { Stack } from 'expo-router';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { ApplicationProvider, IconRegistry } from '@ui-kitten/components';
+import { ApplicationProvider, IconRegistry, useTheme } from '@ui-kitten/components';
 import { EvaIconsPack } from '@ui-kitten/eva-icons';
 import { lightTheme, darkTheme } from '@/theme/themes';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/api/queryClient';
+import { SettingsProvider, useSettings } from '@/hooks/useSettings';
+
+const ThemedStack = () => {
+  const theme = useTheme();
+
+  return (
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        headerStyle: {
+          backgroundColor: theme['background-basic-color-2'],
+        },
+        headerTintColor: theme['text-basic-color'],
+        headerTitleStyle: {
+          color: theme['text-basic-color'],
+        },
+        contentStyle: {
+          backgroundColor: theme['background-basic-color-1'],
+        },
+      }}
+    />
+  );
+};
+
+const ThemedApp = () => {
+  const { resolvedTheme } = useSettings();
+  const evaTheme = resolvedTheme === 'dark' ? darkTheme : lightTheme;
+
+  return (
+    <ApplicationProvider {...eva} theme={evaTheme}>
+      <IconRegistry icons={EvaIconsPack} />
+      <ThemedStack />
+    </ApplicationProvider>
+  );
+};
 
 const RootLayout = () => {
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <ApplicationProvider {...eva} theme={darkTheme}>
-          <IconRegistry icons={EvaIconsPack} />
-          <Stack screenOptions={{ headerShown: false }} />
-        </ApplicationProvider>
+        <SettingsProvider>
+          <ThemedApp />
+        </SettingsProvider>
       </QueryClientProvider>
     </SafeAreaProvider>
   );
