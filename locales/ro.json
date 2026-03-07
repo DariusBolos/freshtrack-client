@@ -21,7 +21,30 @@
     "validation_password": "Parola trebuie să aibă cel puțin 8 caractere și să includă cel puțin o literă și o cifră"
   },
   "home": {
-    "welcome": "Bine ai venit!"
+    "welcome": "Bine ai venit!",
+    "hello": "Bine ai revenit,",
+    "your_impact": "Impactul tău",
+    "food_saved": "Produse salvate",
+    "waste_avoided": "Risipă evitată",
+    "receipts_scanned": "Bonuri",
+    "total_products": "Total produse",
+    "expiring_today": "Expiră azi",
+    "expiring_soon": "Expiră curând",
+    "expiry_overview": "Sumar expirări",
+    "chart_expired": "Expirat",
+    "chart_critical": "Azi",
+    "chart_warning": "3 zile",
+    "chart_good": "7 zile",
+    "chart_fresh": "Proaspăt",
+    "recipe_suggestions": "Sugestii de rețete",
+    "see_all": "Vezi toate",
+    "ingredients": "ingrediente",
+    "family_mode": "Modul Familie",
+    "family_hint": "Partajează inventarul cu membrii familiei, astfel încât toți să poată adăuga, edita sau vedea produsele.",
+    "invite": "Invită",
+    "role_owner": "Proprietar",
+    "role_editor": "Editor",
+    "role_viewer": "Vizualizator"
   },
   "inventory": {
     "title": "Inventarul meu",
@@ -45,6 +68,18 @@
     "expires": "Expiră",
     "generate_recipes": "Generează rețete",
     "generate_recipes_hint": "Obține idei de rețete pe baza acestui ingredient"
+  },
+  "recipe_detail": {
+    "not_found": "Rețeta nu a fost găsită",
+    "servings": "porții",
+    "difficulty_easy": "Ușor",
+    "difficulty_medium": "Mediu",
+    "difficulty_hard": "Dificil",
+    "prep_time": "Timp de pregătire",
+    "cook_time": "Timp de gătire",
+    "total_time": "Timp total",
+    "ingredients": "Ingrediente",
+    "preparation": "Mod de preparare"
   },
   "settings": {
     "title": "Setări",

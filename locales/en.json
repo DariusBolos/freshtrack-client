@@ -21,7 +21,30 @@
     "validation_password": "Password must be at least 8 characters long and include at least one letter and one number"
   },
   "home": {
-    "welcome": "Welcome!"
+    "welcome": "Welcome!",
+    "hello": "Good to see you,",
+    "your_impact": "Your Impact",
+    "food_saved": "Items Saved",
+    "waste_avoided": "Waste Avoided",
+    "receipts_scanned": "Receipts",
+    "total_products": "Total Items",
+    "expiring_today": "Expires Today",
+    "expiring_soon": "Expiring Soon",
+    "expiry_overview": "Expiry Overview",
+    "chart_expired": "Expired",
+    "chart_critical": "Today",
+    "chart_warning": "3 days",
+    "chart_good": "7 days",
+    "chart_fresh": "Fresh",
+    "recipe_suggestions": "Recipe Suggestions",
+    "see_all": "See all",
+    "ingredients": "items",
+    "family_mode": "Family Mode",
+    "family_hint": "Share your inventory with family members so everyone can add, edit, or view products.",
+    "invite": "Invite",
+    "role_owner": "Owner",
+    "role_editor": "Editor",
+    "role_viewer": "Viewer"
   },
   "inventory": {
     "title": "My Inventory",
@@ -43,6 +66,18 @@
     "expires": "Expires",
     "generate_recipes": "Generate Recipes",
     "generate_recipes_hint": "Get recipe ideas based on this ingredient"
+  },
+  "recipe_detail": {
+    "not_found": "Recipe not found",
+    "servings": "servings",
+    "difficulty_easy": "Easy",
+    "difficulty_medium": "Medium",
+    "difficulty_hard": "Hard",
+    "prep_time": "Prep Time",
+    "cook_time": "Cook Time",
+    "total_time": "Total Time",
+    "ingredients": "Ingredients",
+    "preparation": "Preparation"
   },
   "settings": {
     "title": "Settings",

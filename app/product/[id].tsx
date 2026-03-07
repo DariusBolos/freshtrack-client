@@ -6,6 +6,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { MOCK_PRODUCTS } from '@/data/mockProducts';
 import { getDaysUntilExpiry, getExpiryStatus, getExpiryColors } from '@/utils/expiryUtils';
+import { useSettings } from '@/hooks/useSettings';
 
 const CATEGORY_ICONS: Record<string, string> = {
   dairy: 'cheese',
@@ -24,6 +25,7 @@ const ProductDetail = () => {
   const router = useRouter();
   const theme = useTheme();
   const { t } = useTranslation();
+  const { resolvedTheme } = useSettings();
 
   const product = MOCK_PRODUCTS.find((p) => p.id === id);
 
@@ -38,7 +40,7 @@ const ProductDetail = () => {
 
   const daysLeft = getDaysUntilExpiry(product.expiryDate);
   const status = getExpiryStatus(daysLeft);
-  const colors = getExpiryColors(status);
+  const colors = getExpiryColors(status, resolvedTheme);
   const icon = CATEGORY_ICONS[product.category?.toLowerCase() ?? ''] ?? DEFAULT_ICON;
 
   const expiryLabel =

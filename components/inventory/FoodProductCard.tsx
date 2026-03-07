@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { FoodProduct } from '@/types/productTypes';
 import { getDaysUntilExpiry, getExpiryStatus, getExpiryColors } from '@/utils/expiryUtils';
 import { useTranslation } from 'react-i18next';
+import { useSettings } from '@/hooks/useSettings';
 
 type Props = {
   product: FoodProduct;
@@ -27,10 +28,11 @@ const FoodProductCard: React.FC<Props> = ({ product }) => {
   const theme = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
+  const { resolvedTheme } = useSettings();
 
   const daysLeft = getDaysUntilExpiry(product.expiryDate);
   const status = getExpiryStatus(daysLeft);
-  const colors = getExpiryColors(status);
+  const colors = getExpiryColors(status, resolvedTheme);
   const icon = CATEGORY_ICONS[product.category?.toLowerCase() ?? ''] ?? DEFAULT_ICON;
 
   const expiryLabel =
