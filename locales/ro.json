@@ -107,5 +107,27 @@
     "clear_data": "Șterge toate datele",
     "clear_data_confirm": "Aceasta va elimina toate produsele scanate și setările. Această acțiune nu poate fi anulată.",
     "logout_confirm": "Ești sigur că vrei să te deconectezi?"
+  },
+  "notifications": {
+    "title": "Notificări",
+    "empty": "Nicio notificare încă.",
+    "mark_all_read": "Marchează toate ca citite"
+  },
+  "invite": {
+    "title": "Invitație în familie",
+    "not_found": "Invitația nu a fost găsită",
+    "subtitle": "Ai fost invitat să te alături acestei familii",
+    "invited_by": "Invitat de",
+    "what_you_can_do": "Ce vei putea face",
+    "perm_view": "Vizualizezi inventarul partajat al familiei",
+    "perm_add": "Adaugi produse noi în inventar",
+    "perm_edit": "Editezi și actualizezi produsele existente",
+    "accept": "Acceptă",
+    "decline": "Refuză",
+    "decline_confirm_title": "Refuză invitația",
+    "decline_confirm_message": "Ești sigur că vrei să refuzi această invitație?",
+    "accepted_message": "Te-ai alăturat familiei! Inventarele voastre sunt acum partajate.",
+    "declined_message": "Ai refuzat această invitație.",
+    "view_invite": "Vezi invitația"
   }
 }

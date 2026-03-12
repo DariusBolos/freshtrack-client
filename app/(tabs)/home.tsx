@@ -1,14 +1,16 @@
+import React, { useState } from 'react';
 import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { Text, useTheme } from '@ui-kitten/components';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '@/hooks/useSettings';
 import { useProducts } from '@/hooks/useProducts';
-import { MOCK_STATS, MOCK_RECIPES, MOCK_FAMILY } from '@/data/mockDashboard';
+import { MOCK_STATS, MOCK_RECIPES, MOCK_FAMILY, MOCK_NOTIFICATIONS } from '@/data/mockDashboard';
 import StatCard from '@/components/home/StatCard';
 import ExpiryChart from '@/components/home/ExpiryChart';
 import RecipeCard from '@/components/home/RecipeCard';
 import FamilyMemberRow from '@/components/home/FamilyMemberRow';
+import NotificationsModal from '@/components/home/NotificationsModal';
 import Spinner from '@/components/Spinner';
 
 const HomeTab = () => {
@@ -17,6 +19,14 @@ const HomeTab = () => {
   const { firstName } = useSettings();
 
   const { data: products, isLoading } = useProducts();
+
+  const [notifVisible, setNotifVisible] = useState(false);
+  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
+  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const handleMarkAllRead = () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+  };
 
   //TODO update spinner component
   if (isLoading) {
@@ -27,13 +37,27 @@ const HomeTab = () => {
     <View style={[styles.screen, { backgroundColor: theme['background-basic-color-1'] }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         <View style={styles.greeting}>
-          <View>
+          <View style={styles.greetingLeft}>
             <Text style={[styles.greetingHello, { color: theme['text-hint-color'] }]}>{t('home.hello')}</Text>
-            <Text style={[styles.greetingName, { color: theme['text-basic-color'] }]}>{firstName}</Text>
+            <View style={styles.nameRow}>
+              <Text style={[styles.greetingName, { color: theme['text-basic-color'] }]}>{firstName}</Text>
+              <View style={[styles.leafIcon, { backgroundColor: theme['color-primary-500'] + '18' }]}>
+                <FontAwesome5 name="leaf" size={14} color={theme['color-primary-500']} />
+              </View>
+            </View>
           </View>
-          <View style={[styles.greetingIcon, { backgroundColor: theme['color-primary-500'] + '18' }]}>
-            <FontAwesome5 name="leaf" size={20} color={theme['color-primary-500']} />
-          </View>
+          <Pressable
+            onPress={() => setNotifVisible(true)}
+            style={[styles.bellButton, { backgroundColor: theme['background-basic-color-2'] }]}
+            hitSlop={8}
+          >
+            <FontAwesome5 name="bell" size={18} color={theme['text-basic-color']} />
+            {unreadCount > 0 && (
+              <View style={[styles.badge, { backgroundColor: theme['color-danger-500'] }]}>
+                <Text style={styles.badgeText}>{unreadCount}</Text>
+              </View>
+            )}
+          </Pressable>
         </View>
 
         <Text style={[styles.sectionTitle, { color: theme['color-primary-500'] }]}>{t('home.your_impact')}</Text>
@@ -86,6 +110,12 @@ const HomeTab = () => {
           </View>
         </View>
       </ScrollView>
+      <NotificationsModal
+        visible={notifVisible}
+        onClose={() => setNotifVisible(false)}
+        notifications={notifications}
+        onMarkAllRead={handleMarkAllRead}
+      />
     </View>
   );
 };
@@ -105,21 +135,52 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 22,
   },
+  greetingLeft: {
+    flex: 1,
+  },
   greetingHello: {
     fontSize: 14,
     fontWeight: '500',
   },
+  nameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginTop: 2,
+  },
   greetingName: {
     fontSize: 26,
     fontWeight: '800',
-    marginTop: 2,
   },
-  greetingIcon: {
-    width: 48,
-    height: 48,
+  leafIcon: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  bellButton: {
+    width: 44,
+    height: 44,
     borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  badge: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    minWidth: 16,
+    height: 16,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 3,
+  },
+  badgeText: {
+    color: '#FFFFFF',
+    fontSize: 10,
+    fontWeight: '800',
   },
 
   sectionTitle: {

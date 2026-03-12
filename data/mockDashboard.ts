@@ -1,4 +1,4 @@
-import { DashboardStats, Recipe, FamilyMember } from '@/types/dashboardTypes';
+import { DashboardStats, Recipe, FamilyMember, Notification } from '@/types/dashboardTypes';
 
 export const MOCK_STATS: DashboardStats = {
   totalProducts: 10,
@@ -144,5 +144,54 @@ export const MOCK_FAMILY: FamilyMember[] = [
     email: 'alex.doe@example.com',
     avatar: 'AD',
     role: 'viewer',
+  },
+];
+
+export const MOCK_NOTIFICATIONS: Notification[] = [
+  {
+    id: '1',
+    type: 'family_invite',
+    title: 'Family Invite',
+    message: 'Jane Doe has invited you to join their family.',
+    timestamp: '2026-03-12T09:30:00Z',
+    read: false,
+    inviterName: 'Jane Doe',
+    inviterEmail: 'jane.doe@example.com',
+    familyName: "Doe's Family",
+  },
+  {
+    id: '2',
+    type: 'expiring_soon',
+    title: 'Expiring Soon',
+    message: 'Milk expires tomorrow. Use it before it goes to waste!',
+    timestamp: '2026-03-12T08:00:00Z',
+    read: false,
+  },
+  {
+    id: '3',
+    type: 'expired',
+    title: 'Product Expired',
+    message: 'Yogurt expired yesterday. Consider removing it from your inventory.',
+    timestamp: '2026-03-11T18:00:00Z',
+    read: true,
+  },
+  {
+    id: '4',
+    type: 'expiring_soon',
+    title: 'Expiring Soon',
+    message: 'Chicken Breast expires in 2 days.',
+    timestamp: '2026-03-11T10:00:00Z',
+    read: true,
+  },
+  {
+    id: '5',
+    type: 'family_invite',
+    title: 'Family Invite',
+    message: 'Alex Doe has invited you to join their family.',
+    timestamp: '2026-03-10T14:00:00Z',
+    read: true,
+    inviterName: 'Alex Doe',
+    inviterEmail: 'alex.doe@example.com',
+    familyName: "Alex's Family",
   },
 ];

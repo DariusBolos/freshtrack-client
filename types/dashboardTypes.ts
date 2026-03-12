@@ -28,3 +28,15 @@ export type FamilyMember = {
   avatar: string;
   role: 'owner' | 'editor' | 'viewer';
 };
+
+export type Notification = {
+  id: string;
+  type: 'family_invite' | 'expiring_soon' | 'expired';
+  title: string;
+  message: string;
+  timestamp: string;
+  read: boolean;
+  inviterName?: string;
+  inviterEmail?: string;
+  familyName?: string;
+};
