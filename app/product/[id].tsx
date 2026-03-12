@@ -4,9 +4,9 @@ import { Text, useTheme } from '@ui-kitten/components';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { MOCK_PRODUCTS } from '@/data/mockProducts';
-import { getDaysUntilExpiry, getExpiryStatus, getExpiryColors } from '@/utils/expiryUtils';
+import { getDaysUntilExpiry, getExpiryStatus, getExpiryColors } from '@/utils/productUtils';
 import { useSettings } from '@/hooks/useSettings';
+import { useProduct } from '@/hooks/useProducts';
 
 const CATEGORY_ICONS: Record<string, string> = {
   dairy: 'cheese',
@@ -27,7 +27,7 @@ const ProductDetail = () => {
   const { t } = useTranslation();
   const { resolvedTheme } = useSettings();
 
-  const product = MOCK_PRODUCTS.find((p) => p.id === id);
+  const { data: product } = useProduct(id!);
 
   if (!product) {
     return (
@@ -60,7 +60,6 @@ const ProductDetail = () => {
 
   return (
     <View style={[styles.screen, { backgroundColor: theme['background-basic-color-1'] }]}>
-      {/* Header */}
       <View style={[styles.header, { backgroundColor: theme['background-basic-color-2'] }]}>
         <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12}>
           <FontAwesome5 name="arrow-left" size={18} color={theme['text-basic-color']} />
@@ -72,7 +71,6 @@ const ProductDetail = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Hero card */}
         <View style={[styles.heroCard, { backgroundColor: colors.bg, borderColor: colors.border }]}>
           <View style={[styles.heroIcon, { backgroundColor: colors.border + '22' }]}>
             <FontAwesome5 name={icon} size={40} color={colors.border} />
@@ -88,7 +86,6 @@ const ProductDetail = () => {
           </View>
         </View>
 
-        {/* Info rows */}
         <View style={[styles.infoSection, { backgroundColor: theme['background-basic-color-2'] }]}>
           <InfoRow icon="balance-scale" label={t('product_detail.quantity')} value={`${product.quantity} ${product.unit}`} theme={theme} />
           <View style={[styles.divider, { backgroundColor: theme['text-hint-color'] + '15' }]} />
@@ -103,12 +100,9 @@ const ProductDetail = () => {
           />
         </View>
 
-        {/* Generate Recipes button */}
         <Pressable
           style={({ pressed }) => [styles.recipeButton, { backgroundColor: theme['color-primary-500'], opacity: pressed ? 0.85 : 1 }]}
-          onPress={() => {
-            // TODO: navigate to recipes screen or trigger recipe generation
-          }}
+          onPress={() => {}}
         >
           <FontAwesome5 name="utensils" size={18} color="#FFFFFF" />
           <Text style={styles.recipeButtonText}>{t('product_detail.generate_recipes')}</Text>
@@ -152,7 +146,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  /* Header */
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -174,13 +167,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  /* Content */
   content: {
     padding: 16,
     paddingBottom: 40,
   },
 
-  /* Hero */
   heroCard: {
     alignItems: 'center',
     borderRadius: 16,
@@ -218,7 +209,6 @@ const styles = StyleSheet.create({
     fontWeight: '700',
   },
 
-  /* Info section */
   infoSection: {
     borderRadius: 14,
     padding: 16,
@@ -253,7 +243,6 @@ const styles = StyleSheet.create({
     marginLeft: 40,
   },
 
-  /* Recipe button */
   recipeButton: {
     flexDirection: 'row',
     alignItems: 'center',

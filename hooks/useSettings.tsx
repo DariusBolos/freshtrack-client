@@ -2,25 +2,20 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Appearance } from 'react-native';
 import i18n from 'i18next';
-
-// ── Types ────────────────────────────────────────────────────────────────────
+import { useUserData } from '@/hooks/useUserData';
 
 export type ThemeMode = 'light' | 'dark' | 'system';
 export type Language = 'en' | 'ro';
 
 export type Settings = {
-  // Appearance
   themeMode: ThemeMode;
-  // Language
   language: Language;
-  // Notifications
   expiryReminders: boolean;
   reminderDaysBefore: number;
-  // Camera / Scanning
   autoScan: boolean;
   saveScanHistory: boolean;
-  // Account
-  userName: string;
+  firstName: string;
+  lastName: string;
   userEmail: string;
 };
 
@@ -29,8 +24,6 @@ type SettingsContextValue = Settings & {
   updateSetting: <K extends keyof Settings>(key: K, value: Settings[K]) => void;
 };
 
-// ── Defaults ─────────────────────────────────────────────────────────────────
-
 const defaultSettings: Settings = {
   themeMode: 'system',
   language: 'en',
@@ -38,13 +31,12 @@ const defaultSettings: Settings = {
   reminderDaysBefore: 2,
   autoScan: true,
   saveScanHistory: true,
-  userName: 'John Doe',
+  firstName: 'John',
+  lastName: 'Doe',
   userEmail: 'john.doe@example.com',
 };
 
 const STORAGE_KEY = '@freshtrack_settings';
-
-// ── Context ──────────────────────────────────────────────────────────────────
 
 const SettingsContext = createContext<SettingsContextValue>({
   ...defaultSettings,
@@ -54,13 +46,23 @@ const SettingsContext = createContext<SettingsContextValue>({
 
 export const useSettings = () => useContext(SettingsContext);
 
-// ── Provider ─────────────────────────────────────────────────────────────────
-
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [settings, setSettings] = useState<Settings>(defaultSettings);
   const [loaded, setLoaded] = useState(false);
 
-  // Load persisted settings on mount
+  const { data: userData } = useUserData();
+
+  useEffect(() => {
+    if (userData?.email) {
+      setSettings((prev) => ({
+        ...prev,
+        userEmail: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+      }));
+    }
+  }, [userData]);
+
   useEffect(() => {
     (async () => {
       try {
@@ -69,21 +71,18 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           setSettings((prev) => ({ ...prev, ...JSON.parse(raw) }));
         }
       } catch {
-        // ignore – use defaults
       } finally {
         setLoaded(true);
       }
     })();
   }, []);
 
-  // Persist whenever settings change (after initial load)
   useEffect(() => {
     if (loaded) {
       AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(settings)).catch(() => {});
     }
   }, [settings, loaded]);
 
-  // Keep i18n language in sync
   useEffect(() => {
     if (i18n.language !== settings.language) {
       i18n.changeLanguage(settings.language);
@@ -94,11 +93,10 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     setSettings((prev) => ({ ...prev, [key]: value }));
   }, []);
 
-  // Resolve actual theme
   const systemScheme = Appearance.getColorScheme() ?? 'dark';
   const resolvedTheme: 'light' | 'dark' = settings.themeMode === 'system' ? systemScheme : settings.themeMode;
 
-  if (!loaded) return null; // avoid flash
+  if (!loaded) return null;
 
   return <SettingsContext.Provider value={{ ...settings, resolvedTheme, updateSetting }}>{children}</SettingsContext.Provider>;
 };

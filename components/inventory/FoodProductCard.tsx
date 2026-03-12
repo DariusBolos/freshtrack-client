@@ -1,15 +1,16 @@
-import React from 'react';
-import { View, Pressable, StyleSheet } from 'react-native';
+import React, { useRef } from 'react';
+import { View, Pressable, StyleSheet, Animated, PanResponder } from 'react-native';
 import { Text, useTheme } from '@ui-kitten/components';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { FoodProduct } from '@/types/productTypes';
-import { getDaysUntilExpiry, getExpiryStatus, getExpiryColors } from '@/utils/expiryUtils';
+import { getDaysUntilExpiry, getExpiryStatus, getExpiryColors } from '@/utils/productUtils';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '@/hooks/useSettings';
 
 type Props = {
   product: FoodProduct;
+  onDelete?: (id: string) => void;
 };
 
 const CATEGORY_ICONS: Record<string, string> = {
@@ -23,8 +24,10 @@ const CATEGORY_ICONS: Record<string, string> = {
   snack: 'cookie',
 };
 const DEFAULT_ICON = 'shopping-basket';
+const DELETE_WIDTH = 72;
+const SWIPE_THRESHOLD = 40;
 
-const FoodProductCard: React.FC<Props> = ({ product }) => {
+const FoodProductCard: React.FC<Props> = ({ product, onDelete }) => {
   const theme = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
@@ -48,56 +51,129 @@ const FoodProductCard: React.FC<Props> = ({ product }) => {
     year: 'numeric',
   });
 
+  const translateX = useRef(new Animated.Value(0)).current;
+  const isOpen = useRef(false);
+
+  const panResponder = useRef(
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) > 10 && Math.abs(gesture.dy) < 20,
+      onPanResponderMove: (_, gesture) => {
+        const base = isOpen.current ? -DELETE_WIDTH : 0;
+        const next = Math.min(0, Math.max(-DELETE_WIDTH, base + gesture.dx));
+        translateX.setValue(next);
+      },
+      onPanResponderRelease: (_, gesture) => {
+        const base = isOpen.current ? -DELETE_WIDTH : 0;
+        const final = base + gesture.dx;
+        if (final < -SWIPE_THRESHOLD) {
+          Animated.spring(translateX, {
+            toValue: -DELETE_WIDTH,
+            useNativeDriver: true,
+            bounciness: 4,
+          }).start();
+          isOpen.current = true;
+        } else {
+          Animated.spring(translateX, {
+            toValue: 0,
+            useNativeDriver: true,
+            bounciness: 4,
+          }).start();
+          isOpen.current = false;
+        }
+      },
+    }),
+  ).current;
+
+  const handleDelete = () => {
+    Animated.timing(translateX, {
+      toValue: 0,
+      duration: 200,
+      useNativeDriver: true,
+    }).start(() => {
+      isOpen.current = false;
+      onDelete?.(product.id);
+    });
+  };
+
   return (
-    <Pressable onPress={() => router.push(`/product/${product.id}`)} style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}>
-      <View
-        style={[
-          styles.card,
-          {
-            backgroundColor: colors.bg,
-            borderLeftColor: colors.border,
-          },
-        ]}
-      >
-        {/* Top row */}
-        <View style={styles.topRow}>
-          <View style={[styles.iconCircle, { backgroundColor: colors.border + '22' }]}>
-            <FontAwesome5 name={icon} size={20} color={colors.border} />
-          </View>
-
-          <View style={styles.info}>
-            <Text style={[styles.name, { color: theme['text-basic-color'] }]} numberOfLines={1}>
-              {product.name}
-            </Text>
-            <Text style={[styles.qty, { color: theme['text-hint-color'] }]}>
-              {product.quantity} {product.unit}
-            </Text>
-          </View>
-
-          <View style={[styles.badge, { backgroundColor: colors.border + '1A', borderColor: colors.border }]}>
-            <Text style={[styles.badgeText, { color: colors.badge }]}>{expiryLabel}</Text>
-          </View>
-        </View>
-
-        {/* Footer */}
-        <View style={[styles.footer, { borderTopColor: theme['text-hint-color'] + '20' }]}>
-          <FontAwesome5 name="calendar-alt" size={11} color={theme['text-hint-color']} />
-          <Text style={[styles.footerText, { color: theme['text-hint-color'] }]}>
-            {t('inventory.expires_on')}: {formattedDate}
-          </Text>
-        </View>
+    <View style={styles.wrapper}>
+      <View style={[styles.deleteContainer, { backgroundColor: '#D32F2F' }]}>
+        <Pressable onPress={handleDelete} style={styles.deleteButton} hitSlop={8}>
+          <FontAwesome5 name="times" size={20} color="#FFFFFF" />
+        </Pressable>
       </View>
-    </Pressable>
+
+      <Animated.View style={{ transform: [{ translateX }] }} {...panResponder.panHandlers}>
+        <Pressable onPress={() => router.push(`/product/${product.id}`)} style={({ pressed }) => [{ opacity: pressed ? 0.8 : 1 }]}>
+          <View
+            style={[
+              styles.card,
+              {
+                backgroundColor: colors.bg,
+                borderLeftColor: colors.border,
+              },
+            ]}
+          >
+            <View style={styles.topRow}>
+              <View style={[styles.iconCircle, { backgroundColor: colors.border + '22' }]}>
+                <FontAwesome5 name={icon} size={20} color={colors.border} />
+              </View>
+
+              <View style={styles.info}>
+                <Text style={[styles.name, { color: theme['text-basic-color'] }]} numberOfLines={1}>
+                  {product.name}
+                </Text>
+                <Text style={[styles.qty, { color: theme['text-hint-color'] }]}>
+                  {product.quantity} {product.unit}
+                </Text>
+              </View>
+
+              <View style={[styles.badge, { backgroundColor: colors.border + '1A', borderColor: colors.border }]}>
+                <Text style={[styles.badgeText, { color: colors.badge }]}>{expiryLabel}</Text>
+              </View>
+            </View>
+
+            <View style={[styles.footer, { borderTopColor: theme['text-hint-color'] + '20' }]}>
+              <FontAwesome5 name="calendar-alt" size={11} color={theme['text-hint-color']} />
+              <Text style={[styles.footerText, { color: theme['text-hint-color'] }]}>
+                {t('inventory.expires_on')}: {formattedDate}
+              </Text>
+            </View>
+          </View>
+        </Pressable>
+      </Animated.View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
+  wrapper: {
+    position: 'relative',
+    marginHorizontal: 16,
+    marginBottom: 10,
+  },
+  deleteContainer: {
+    position: 'absolute',
+    top: 0,
+    bottom: 0,
+    right: 0,
+    width: DELETE_WIDTH,
+    borderTopRightRadius: 14,
+    borderBottomRightRadius: 14,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  deleteButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   card: {
     borderRadius: 14,
     borderLeftWidth: 4,
     padding: 14,
-    marginHorizontal: 16,
-    marginBottom: 10,
   },
   topRow: {
     flexDirection: 'row',

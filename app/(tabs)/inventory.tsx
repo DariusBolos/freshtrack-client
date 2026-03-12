@@ -1,24 +1,29 @@
-import React, { useMemo } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, FlatList, StyleSheet } from 'react-native';
 import { Text, useTheme } from '@ui-kitten/components';
 import { useTranslation } from 'react-i18next';
 import { FontAwesome5 } from '@expo/vector-icons';
 import FoodProductCard from '@/components/inventory/FoodProductCard';
-import { MOCK_PRODUCTS } from '@/data/mockProducts';
-import { getDaysUntilExpiry } from '@/utils/expiryUtils';
 import { FoodProduct } from '@/types/productTypes';
+import { useProducts, useDeleteProduct } from '@/hooks/useProducts';
+import { sortProductsByExpiryDate } from '@/utils/productUtils';
 
 const InventoryTab = () => {
   const { t } = useTranslation();
   const theme = useTheme();
 
-  // Sort products: soonest-to-expire first
-  const sortedProducts = useMemo(
-    () => [...MOCK_PRODUCTS].sort((a, b) => getDaysUntilExpiry(a.expiryDate) - getDaysUntilExpiry(b.expiryDate)),
-    [],
+  const { data: products } = useProducts();
+  const { mutate: deleteProduct } = useDeleteProduct();
+  const sortedProducts = useMemo(() => sortProductsByExpiryDate(products!), [products]);
+
+  const handleDelete = useCallback(
+    (id: string) => {
+      deleteProduct(id);
+    },
+    [deleteProduct],
   );
 
-  const renderItem = ({ item }: { item: FoodProduct }) => <FoodProductCard product={item} />;
+  const renderItem = ({ item }: { item: FoodProduct }) => <FoodProductCard product={item} onDelete={handleDelete} />;
 
   const ListHeader = () => (
     <View style={styles.header}>

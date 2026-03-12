@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Text, useTheme } from '@ui-kitten/components';
 import Svg, { Rect, Text as SvgText } from 'react-native-svg';
 import { FoodProduct } from '@/types/productTypes';
-import { getDaysUntilExpiry, getExpiryStatus, getExpiryColors, ExpiryStatus } from '@/utils/expiryUtils';
+import { getDaysUntilExpiry, getExpiryStatus, getExpiryColors, ExpiryStatus } from '@/utils/productUtils';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '@/hooks/useSettings';
 
@@ -67,13 +67,10 @@ const ExpiryChart: React.FC<Props> = ({ products }) => {
 
             return (
               <React.Fragment key={bucket.status}>
-                {/* Bar */}
                 <Rect x={x} y={y} width={barWidth} height={barHeight} rx={6} ry={6} fill={bucket.colors.border} opacity={0.85} />
-                {/* Count above bar */}
                 <SvgText x={x + barWidth / 2} y={y - 6} fontSize={12} fontWeight="700" fill={bucket.colors.badge} textAnchor="middle">
                   {bucket.count}
                 </SvgText>
-                {/* Label below bar */}
                 <SvgText
                   x={x + barWidth / 2}
                   y={chartHeight - 4}

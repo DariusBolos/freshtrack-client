@@ -1,37 +1,41 @@
-import React from 'react';
 import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { Text, useTheme } from '@ui-kitten/components';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '@/hooks/useSettings';
-import { MOCK_PRODUCTS } from '@/data/mockProducts';
+import { useProducts } from '@/hooks/useProducts';
 import { MOCK_STATS, MOCK_RECIPES, MOCK_FAMILY } from '@/data/mockDashboard';
 import StatCard from '@/components/home/StatCard';
 import ExpiryChart from '@/components/home/ExpiryChart';
 import RecipeCard from '@/components/home/RecipeCard';
 import FamilyMemberRow from '@/components/home/FamilyMemberRow';
+import Spinner from '@/components/Spinner';
 
 const HomeTab = () => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { userName } = useSettings();
-  const firstName = userName.split(' ')[0];
+  const { firstName } = useSettings();
+
+  const { data: products, isLoading } = useProducts();
+
+  //TODO update spinner component
+  if (isLoading) {
+    return <Spinner size="medium" />;
+  }
 
   return (
     <View style={[styles.screen, { backgroundColor: theme['background-basic-color-1'] }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* ── Greeting ──────────────────────────────────────────── */}
         <View style={styles.greeting}>
           <View>
             <Text style={[styles.greetingHello, { color: theme['text-hint-color'] }]}>{t('home.hello')}</Text>
-            <Text style={[styles.greetingName, { color: theme['text-basic-color'] }]}>{firstName} 👋</Text>
+            <Text style={[styles.greetingName, { color: theme['text-basic-color'] }]}>{firstName}</Text>
           </View>
           <View style={[styles.greetingIcon, { backgroundColor: theme['color-primary-500'] + '18' }]}>
             <FontAwesome5 name="leaf" size={20} color={theme['color-primary-500']} />
           </View>
         </View>
 
-        {/* ── Stats Row ─────────────────────────────────────────── */}
         <Text style={[styles.sectionTitle, { color: theme['color-primary-500'] }]}>{t('home.your_impact')}</Text>
         <View style={styles.statsRow}>
           <StatCard icon="apple-alt" label={t('home.food_saved')} value={String(MOCK_STATS.foodSaved)} color={theme['color-primary-500']} />
@@ -44,19 +48,16 @@ const HomeTab = () => {
           <StatCard icon="receipt" label={t('home.receipts_scanned')} value={String(MOCK_STATS.receiptsScanned)} color="#64B5F6" />
         </View>
 
-        {/* ── Quick Stats ───────────────────────────────────────── */}
         <View style={styles.statsRow}>
           <StatCard icon="boxes" label={t('home.total_products')} value={String(MOCK_STATS.totalProducts)} />
           <StatCard icon="exclamation-triangle" label={t('home.expiring_today')} value={String(MOCK_STATS.expiringToday)} color="#F44336" />
           <StatCard icon="clock" label={t('home.expiring_soon')} value={String(MOCK_STATS.expiringSoon)} color="#FFA000" />
         </View>
 
-        {/* ── Expiry Chart ──────────────────────────────────────── */}
         <View style={styles.sectionSpacing}>
-          <ExpiryChart products={MOCK_PRODUCTS} />
+          <ExpiryChart products={products!} />
         </View>
 
-        {/* ── Recipe Suggestions ────────────────────────────────── */}
         <View style={styles.sectionSpacing}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme['color-primary-500'] }]}>{t('home.recipe_suggestions')}</Text>
@@ -69,7 +70,6 @@ const HomeTab = () => {
           ))}
         </View>
 
-        {/* ── Family Mode ───────────────────────────────────────── */}
         <View style={styles.sectionSpacing}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme['color-primary-500'] }]}>{t('home.family_mode')}</Text>
@@ -99,7 +99,6 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  /* Greeting */
   greeting: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -123,7 +122,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  /* Sections */
   sectionTitle: {
     fontSize: 12,
     fontWeight: '700',
@@ -145,14 +143,12 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
 
-  /* Stats */
   statsRow: {
     flexDirection: 'row',
     gap: 10,
     marginBottom: 10,
   },
 
-  /* Family */
   familyHint: {
     fontSize: 13,
     marginBottom: 10,

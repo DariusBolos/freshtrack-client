@@ -33,7 +33,6 @@ const RecipeDetail = () => {
 
   return (
     <View style={[styles.screen, { backgroundColor: theme['background-basic-color-1'] }]}>
-      {/* Header */}
       <View style={[styles.header, { backgroundColor: theme['background-basic-color-2'] }]}>
         <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={12}>
           <FontAwesome5 name="arrow-left" size={18} color={theme['text-basic-color']} />
@@ -45,7 +44,6 @@ const RecipeDetail = () => {
       </View>
 
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Hero */}
         <View style={[styles.heroCard, { backgroundColor: theme['background-basic-color-2'] }]}>
           <View style={[styles.heroIcon, { backgroundColor: theme['color-primary-500'] + '18' }]}>
             <FontAwesome5 name={recipe.icon} size={36} color={theme['color-primary-500']} />
@@ -53,7 +51,6 @@ const RecipeDetail = () => {
           <Text style={[styles.recipeName, { color: theme['text-basic-color'] }]}>{recipe.title}</Text>
           <Text style={[styles.description, { color: theme['text-hint-color'] }]}>{recipe.description}</Text>
 
-          {/* Meta badges */}
           <View style={styles.metaRow}>
             <MetaBadge icon="clock" label={recipe.duration} theme={theme} />
             <MetaBadge icon="user-friends" label={`${recipe.servings} ${t('recipe_detail.servings')}`} theme={theme} />
@@ -61,7 +58,6 @@ const RecipeDetail = () => {
           </View>
         </View>
 
-        {/* Time breakdown */}
         <View style={[styles.timeCard, { backgroundColor: theme['background-basic-color-2'] }]}>
           <TimeRow icon="cut" label={t('recipe_detail.prep_time')} value={recipe.prepTime} theme={theme} />
           <View style={[styles.divider, { backgroundColor: theme['text-hint-color'] + '15' }]} />
@@ -70,7 +66,6 @@ const RecipeDetail = () => {
           <TimeRow icon="hourglass-half" label={t('recipe_detail.total_time')} value={recipe.duration} theme={theme} accent />
         </View>
 
-        {/* Ingredients */}
         <Text style={[styles.sectionTitle, { color: theme['color-primary-500'] }]}>{t('recipe_detail.ingredients')}</Text>
         <View style={[styles.listCard, { backgroundColor: theme['background-basic-color-2'] }]}>
           {recipe.ingredients.map((ingredient, i) => (
@@ -90,7 +85,6 @@ const RecipeDetail = () => {
           ))}
         </View>
 
-        {/* Steps */}
         <Text style={[styles.sectionTitle, { color: theme['color-primary-500'] }]}>{t('recipe_detail.preparation')}</Text>
         <View style={styles.stepsContainer}>
           {recipe.steps.map((step, i) => (
@@ -108,8 +102,6 @@ const RecipeDetail = () => {
     </View>
   );
 };
-
-/* ── Sub-components ──────────────────────────────────────────────────────── */
 
 type MetaBadgeProps = {
   icon: string;
@@ -191,8 +183,6 @@ const timeStyles = StyleSheet.create({
   },
 });
 
-/* ── Main styles ─────────────────────────────────────────────────────────── */
-
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
@@ -207,7 +197,6 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
 
-  /* Header */
   header: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -229,13 +218,11 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
 
-  /* Content */
   content: {
     padding: 16,
     paddingBottom: 40,
   },
 
-  /* Hero */
   heroCard: {
     alignItems: 'center',
     borderRadius: 16,
@@ -271,7 +258,6 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
 
-  /* Time card */
   timeCard: {
     borderRadius: 14,
     marginBottom: 20,
@@ -281,7 +267,6 @@ const styles = StyleSheet.create({
     marginLeft: 48,
   },
 
-  /* Section titles */
   sectionTitle: {
     fontSize: 12,
     fontWeight: '700',
@@ -291,7 +276,6 @@ const styles = StyleSheet.create({
     marginLeft: 4,
   },
 
-  /* Ingredients */
   listCard: {
     borderRadius: 14,
     paddingVertical: 4,
@@ -315,7 +299,6 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
 
-  /* Steps */
   stepsContainer: {
     gap: 12,
   },

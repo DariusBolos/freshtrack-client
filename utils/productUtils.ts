@@ -1,3 +1,5 @@
+import { FoodProduct } from '@/types/productTypes';
+
 export type ExpiryStatus = 'expired' | 'critical' | 'warning' | 'good' | 'fresh';
 
 /**
@@ -56,4 +58,16 @@ export const getExpiryColors = (status: ExpiryStatus, mode: 'light' | 'dark' = '
     case 'fresh':
       return { bg: '#1A3B2A', border: '#4CAF50', badge: '#A5D6A7' };
   }
+};
+
+/**
+ * Returns products sorted by how soon they will expire, with the soonest expiring items first.
+ * Products without an expiry date will be treated as expiring last.
+ */
+export const sortProductsByExpiryDate = (products: FoodProduct[]) => {
+  if (!products || !products.length) {
+    return [];
+  }
+
+  return products.sort((a, b) => getDaysUntilExpiry(a.expiryDate) - getDaysUntilExpiry(b.expiryDate));
 };

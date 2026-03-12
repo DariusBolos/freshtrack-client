@@ -35,20 +35,23 @@ const SettingsTab = () => {
   return (
     <View style={[styles.screen, { backgroundColor: theme['background-basic-color-1'] }]}>
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-        {/* Header */}
         <View style={styles.header}>
           <FontAwesome5 name="cog" size={22} color={theme['color-primary-500']} />
           <Text style={[styles.headerTitle, { color: theme['text-basic-color'] }]}>{t('settings.title')}</Text>
         </View>
 
-        {/* ── Account ──────────────────────────────────────────── */}
         <SettingsSection title={t('settings.section_account')}>
-          <SettingsRow icon="user" label={t('settings.name')} type="press" value={settings.userName} onPress={() => {}} />
+          <SettingsRow
+            icon="user"
+            label={t('settings.name')}
+            type="press"
+            value={`${settings.firstName} ${settings.lastName}`}
+            onPress={() => {}}
+          />
           <SettingsRow icon="envelope" label={t('settings.email')} type="press" value={settings.userEmail} onPress={() => {}} />
           <SettingsRow icon="lock" label={t('settings.change_password')} type="press" onPress={() => {}} isLast />
         </SettingsSection>
 
-        {/* ── Appearance ───────────────────────────────────────── */}
         <SettingsSection title={t('settings.section_appearance')}>
           <SettingsRow
             icon="palette"
@@ -67,7 +70,6 @@ const SettingsTab = () => {
           />
         </SettingsSection>
 
-        {/* ── Notifications ────────────────────────────────────── */}
         <SettingsSection title={t('settings.section_notifications')}>
           <SettingsRow
             icon="bell"
@@ -86,7 +88,6 @@ const SettingsTab = () => {
           />
         </SettingsSection>
 
-        {/* ── Camera / Scanning ────────────────────────────────── */}
         <SettingsSection title={t('settings.section_camera')}>
           <SettingsRow
             icon="camera"
@@ -105,7 +106,6 @@ const SettingsTab = () => {
           />
         </SettingsSection>
 
-        {/* ── Danger zone ──────────────────────────────────────── */}
         <SettingsSection title={t('settings.section_data')}>
           <SettingsRow
             icon="trash-alt"
@@ -132,11 +132,9 @@ const SettingsTab = () => {
           />
         </SettingsSection>
 
-        {/* App version */}
         <Text style={[styles.versionText, { color: theme['text-disabled-color'] }]}>FreshTrack v1.0.0</Text>
       </ScrollView>
 
-      {/* ── Theme Picker Modal ─────────────────────────────────── */}
       <Modal visible={themeModalVisible} backdropStyle={styles.backdrop} onBackdropPress={() => setThemeModalVisible(false)}>
         <Card disabled style={[styles.modal, { backgroundColor: theme['background-basic-color-2'] }]}>
           <Text style={[styles.modalTitle, { color: theme['text-basic-color'] }]}>{t('settings.theme')}</Text>
@@ -176,7 +174,6 @@ const SettingsTab = () => {
         </Card>
       </Modal>
 
-      {/* ── Language Picker Modal ──────────────────────────────── */}
       <Modal visible={langModalVisible} backdropStyle={styles.backdrop} onBackdropPress={() => setLangModalVisible(false)}>
         <Card disabled style={[styles.modal, { backgroundColor: theme['background-basic-color-2'] }]}>
           <Text style={[styles.modalTitle, { color: theme['text-basic-color'] }]}>{t('settings.language')}</Text>
@@ -211,7 +208,6 @@ const SettingsTab = () => {
         </Card>
       </Modal>
 
-      {/* ── Reminder Days Modal ────────────────────────────────── */}
       <Modal visible={reminderModalVisible} backdropStyle={styles.backdrop} onBackdropPress={() => setReminderModalVisible(false)}>
         <Card disabled style={[styles.modal, { backgroundColor: theme['background-basic-color-2'] }]}>
           <Text style={[styles.modalTitle, { color: theme['text-basic-color'] }]}>{t('settings.reminder_days')}</Text>
@@ -272,7 +268,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
 
-  /* Modals */
   backdrop: {
     backgroundColor: 'rgba(0,0,0,0.6)',
   },
