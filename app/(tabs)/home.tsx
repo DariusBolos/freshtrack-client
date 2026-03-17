@@ -12,7 +12,7 @@ import RecipeCard from '@/components/home/RecipeCard';
 import FamilyMemberRow from '@/components/home/FamilyMemberRow';
 import NotificationsModal from '@/components/home/NotificationsModal';
 import Spinner from '@/components/Spinner';
-import { useNotifications, useMarkNotifications } from '@/hooks/useNotifications';
+import { useNotifications, useMarkNotifications, useDeleteNotification, useExpiryNotificationSync } from '@/hooks/useNotifications';
 import { queryClient } from '@/api/queryClient';
 import { Notification } from '@/types/dashboardTypes';
 import { useGetRecipesByIngredients } from '@/hooks/useRecipes';
@@ -20,11 +20,15 @@ import { useGetRecipesByIngredients } from '@/hooks/useRecipes';
 const HomeTab = () => {
   const { t } = useTranslation();
   const theme = useTheme();
-  const { firstName } = useSettings();
+  const { firstName, reminderDaysBefore } = useSettings();
 
   const { data: products = [], isLoading: isProductListLoading } = useProducts();
   const { data: notifications = [], isLoading: isNotificationListLoading } = useNotifications();
   const { mutate: markNotifications } = useMarkNotifications();
+  const { mutate: deleteNotification } = useDeleteNotification();
+
+  // POST expiry notifications for products that don't have one yet
+  useExpiryNotificationSync(products, notifications, reminderDaysBefore);
 
   const ingredients = ['rice', 'chicken'];
   const { data: recipes = [], isLoading: isRecipeListLoading } = useGetRecipesByIngredients(ingredients, 3);
@@ -35,10 +39,15 @@ const HomeTab = () => {
 
   const unreadCount = notifications.filter((notification) => !notification.read).length;
 
+  const handleDismiss = (id: string) => {
+    deleteNotification(id);
+  };
+
   const handleMarkAllRead = () => {
     const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
     if (unreadIds.length === 0) return;
 
+    // optimistically mark everything read in the cache
     queryClient.setQueryData(['notifications'], (oldNotifications: Notification[] | undefined) => {
       if (!oldNotifications) return [];
       return oldNotifications.map((notification) => ({ ...notification, read: true }));
@@ -133,6 +142,7 @@ const HomeTab = () => {
         onClose={() => setNotifVisible(false)}
         notifications={notifications}
         onMarkAllRead={handleMarkAllRead}
+        onDismiss={handleDismiss}
       />
     </View>
   );

@@ -11,6 +11,7 @@ type Props = {
   onClose: () => void;
   notifications: Notification[];
   onMarkAllRead: () => void;
+  onDismiss: (id: string) => void;
 };
 
 const ICON_MAP: Record<Notification['type'], { name: string; color: string }> = {
@@ -29,7 +30,7 @@ const formatTimestamp = (timestamp: string): string => {
   return `${days}d ago`;
 };
 
-const NotificationsModal = ({ visible, onClose, notifications, onMarkAllRead }: Props) => {
+const NotificationsModal = ({ visible, onClose, notifications, onMarkAllRead, onDismiss }: Props) => {
   const theme = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
@@ -38,13 +39,23 @@ const NotificationsModal = ({ visible, onClose, notifications, onMarkAllRead }: 
   const handleNotificationPress = (item: Notification) => {
     if (item.type === 'family_invite') {
       onClose();
-      router.push(`/invite/${item.id}`);
+      router.push(`/invite/${item.inviteId ?? item.id}`);
+    } else if ((item.type === 'expiring_soon' || item.type === 'expired') && item.productId) {
+      onClose();
+      router.push(`/product/${item.productId}`);
     }
   };
 
   const renderItem = ({ item }: { item: Notification }) => {
     const icon = ICON_MAP[item.type];
-    const isTappable = item.type === 'family_invite';
+    const isTappable =
+      item.type === 'family_invite' ||
+      ((item.type === 'expiring_soon' || item.type === 'expired') && !!item.productId);
+
+    const tapHintLabel =
+      item.type === 'family_invite'
+        ? t('invite.view_invite')
+        : t('notifications.view_product');
 
     const row = (
       <View
@@ -67,9 +78,12 @@ const NotificationsModal = ({ visible, onClose, notifications, onMarkAllRead }: 
           <Text style={[styles.notifMessage, { color: theme['text-hint-color'] }]}>{item.message}</Text>
           <View style={styles.notifFooter}>
             <Text style={[styles.notifTime, { color: theme['text-disabled-color'] }]}>{formatTimestamp(item.timestamp)}</Text>
-            {isTappable && <Text style={[styles.tapHint, { color: theme['color-primary-500'] }]}>{t('invite.view_invite')}</Text>}
+            {isTappable && <Text style={[styles.tapHint, { color: theme['color-primary-500'] }]}>{tapHintLabel}</Text>}
           </View>
         </View>
+        <Pressable onPress={() => onDismiss(item.id)} hitSlop={8} style={styles.dismissButton}>
+          <FontAwesome5 name="trash-alt" size={13} color={theme['text-disabled-color']} />
+        </Pressable>
         {isTappable && <FontAwesome5 name="chevron-right" size={12} color={theme['text-disabled-color']} style={styles.chevron} />}
       </View>
     );
@@ -205,6 +219,11 @@ const styles = StyleSheet.create({
   chevron: {
     alignSelf: 'center',
     marginLeft: 4,
+  },
+  dismissButton: {
+    alignSelf: 'center',
+    padding: 6,
+    marginLeft: 2,
   },
   empty: {
     alignItems: 'center',

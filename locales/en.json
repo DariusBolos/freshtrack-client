@@ -65,7 +65,10 @@
     "purchased": "Purchased",
     "expires": "Expires",
     "generate_recipes": "Generate Recipes",
-    "generate_recipes_hint": "Get recipe ideas based on this ingredient"
+    "generate_recipes_hint": "Get recipe ideas based on this ingredient",
+    "remove_product": "Remove Product",
+    "remove_confirm_title": "Remove Product",
+    "remove_confirm_message": "This will permanently remove the product and any related notifications. This action cannot be undone."
   },
   "recipe_detail": {
     "not_found": "Recipe not found",
@@ -108,7 +111,8 @@
   "notifications": {
     "title": "Notifications",
     "empty": "No notifications yet.",
-    "mark_all_read": "Mark all read"
+    "mark_all_read": "Mark all read",
+    "view_product": "View product"
   },
   "invite": {
     "title": "Family Invite",

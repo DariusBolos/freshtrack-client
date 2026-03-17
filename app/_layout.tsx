@@ -7,6 +7,7 @@ import { lightTheme, darkTheme } from '@/theme/themes';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/api/queryClient';
 import { SettingsProvider, useSettings } from '@/hooks/useSettings';
+import { useSocket } from '@/hooks/useSocket';
 
 const ThemedStack = () => {
   const theme = useTheme();
@@ -33,6 +34,9 @@ const ThemedStack = () => {
 const ThemedApp = () => {
   const { resolvedTheme } = useSettings();
   const evaTheme = resolvedTheme === 'dark' ? darkTheme : lightTheme;
+
+  // keep socket connected while the app is mounted
+  useSocket();
 
   return (
     <ApplicationProvider {...eva} theme={evaTheme}>

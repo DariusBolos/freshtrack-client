@@ -158,6 +158,7 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     inviterName: 'Jane Doe',
     inviterEmail: 'jane.doe@example.com',
     familyName: "Doe's Family",
+    inviteId: 'inv-1',
   },
   {
     id: '2',
@@ -166,6 +167,8 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     message: 'Milk expires tomorrow. Use it before it goes to waste!',
     timestamp: '2026-03-12T08:00:00Z',
     read: false,
+    productId: 'prod-1',
+    productName: 'Milk',
   },
   {
     id: '3',
@@ -174,6 +177,8 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     message: 'Yogurt expired yesterday. Consider removing it from your inventory.',
     timestamp: '2026-03-11T18:00:00Z',
     read: true,
+    productId: 'prod-2',
+    productName: 'Yogurt',
   },
   {
     id: '4',
@@ -182,6 +187,8 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     message: 'Chicken Breast expires in 2 days.',
     timestamp: '2026-03-11T10:00:00Z',
     read: true,
+    productId: 'prod-3',
+    productName: 'Chicken Breast',
   },
   {
     id: '5',
@@ -193,5 +200,6 @@ export const MOCK_NOTIFICATIONS: Notification[] = [
     inviterName: 'Alex Doe',
     inviterEmail: 'alex.doe@example.com',
     familyName: "Alex's Family",
+    inviteId: 'inv-2',
   },
 ];

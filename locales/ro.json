@@ -67,7 +67,10 @@
     "purchased": "Cumpărat",
     "expires": "Expiră",
     "generate_recipes": "Generează rețete",
-    "generate_recipes_hint": "Obține idei de rețete pe baza acestui ingredient"
+    "generate_recipes_hint": "Obține idei de rețete pe baza acestui ingredient",
+    "remove_product": "Elimină produsul",
+    "remove_confirm_title": "Elimină produsul",
+    "remove_confirm_message": "Produsul și notificările asociate vor fi șterse definitiv. Această acțiune nu poate fi anulată."
   },
   "recipe_detail": {
     "not_found": "Rețeta nu a fost găsită",
@@ -111,7 +114,8 @@
   "notifications": {
     "title": "Notificări",
     "empty": "Nicio notificare încă.",
-    "mark_all_read": "Marchează toate ca citite"
+    "mark_all_read": "Marchează toate ca citite",
+    "view_product": "Vezi produsul"
   },
   "invite": {
     "title": "Invitație în familie",

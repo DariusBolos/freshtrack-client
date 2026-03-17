@@ -1,12 +1,13 @@
 import React from 'react';
-import { View, ScrollView, StyleSheet, Pressable } from 'react-native';
+import { View, ScrollView, StyleSheet, Pressable, Alert } from 'react-native';
 import { Text, useTheme } from '@ui-kitten/components';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
 import { getDaysUntilExpiry, getExpiryStatus, getExpiryColors } from '@/utils/productUtils';
 import { useSettings } from '@/hooks/useSettings';
-import { useProduct } from '@/hooks/useProducts';
+import { useProduct, useDeleteProduct } from '@/hooks/useProducts';
+import { useNotifications, useDeleteNotification } from '@/hooks/useNotifications';
 
 const CATEGORY_ICONS: Record<string, string> = {
   dairy: 'cheese',
@@ -28,6 +29,28 @@ const ProductDetail = () => {
   const { resolvedTheme } = useSettings();
 
   const { data: product } = useProduct(id!);
+  const { mutate: deleteProduct } = useDeleteProduct();
+  const { data: notifications = [] } = useNotifications();
+  const { mutate: deleteNotification } = useDeleteNotification();
+
+  const handleRemoveProduct = () => {
+    Alert.alert(t('product_detail.remove_confirm_title'), t('product_detail.remove_confirm_message'), [
+      { text: t('common.cancel'), style: 'cancel' },
+      {
+        text: t('common.delete'),
+        style: 'destructive',
+        onPress: () => {
+          // remove any notifications linked to this product
+          const linked = notifications.filter((n) => n.productId === id);
+          for (const n of linked) {
+            deleteNotification(n.id);
+          }
+          deleteProduct(id!);
+          router.back();
+        },
+      },
+    ]);
+  };
 
   if (!product) {
     return (
@@ -109,6 +132,14 @@ const ProductDetail = () => {
         </Pressable>
 
         <Text style={[styles.recipeHint, { color: theme['text-hint-color'] }]}>{t('product_detail.generate_recipes_hint')}</Text>
+
+        <Pressable
+          style={({ pressed }) => [styles.removeButton, { backgroundColor: theme['color-danger-500'], opacity: pressed ? 0.85 : 1 }]}
+          onPress={handleRemoveProduct}
+        >
+          <FontAwesome5 name="trash-alt" size={16} color="#FFFFFF" />
+          <Text style={styles.removeButtonText}>{t('product_detail.remove_product')}</Text>
+        </Pressable>
       </ScrollView>
     </View>
   );
@@ -260,6 +291,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
     marginTop: 10,
+  },
+  removeButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    borderRadius: 14,
+    paddingVertical: 16,
+    marginTop: 24,
+  },
+  removeButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
   },
 });
 

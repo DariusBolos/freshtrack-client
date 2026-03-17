@@ -39,4 +39,10 @@ export type Notification = {
   inviterName?: string;
   inviterEmail?: string;
   familyName?: string;
+  inviteId?: string;
+  productId?: string;
+  productName?: string;
 };
+
+export type CreateNotificationPayload = Omit<Notification, 'id'>;
+
