@@ -5,31 +5,49 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '@/hooks/useSettings';
 import { useProducts } from '@/hooks/useProducts';
-import { MOCK_STATS, MOCK_RECIPES, MOCK_FAMILY, MOCK_NOTIFICATIONS } from '@/data/mockDashboard';
+import { MOCK_STATS, MOCK_RECIPES, MOCK_FAMILY } from '@/data/mockDashboard';
 import StatCard from '@/components/home/StatCard';
 import ExpiryChart from '@/components/home/ExpiryChart';
 import RecipeCard from '@/components/home/RecipeCard';
 import FamilyMemberRow from '@/components/home/FamilyMemberRow';
 import NotificationsModal from '@/components/home/NotificationsModal';
 import Spinner from '@/components/Spinner';
+import { useNotifications, useMarkNotifications } from '@/hooks/useNotifications';
+import { queryClient } from '@/api/queryClient';
+import { Notification } from '@/types/dashboardTypes';
+import { useGetRecipesByIngredients } from '@/hooks/useRecipes';
 
 const HomeTab = () => {
   const { t } = useTranslation();
   const theme = useTheme();
   const { firstName } = useSettings();
 
-  const { data: products, isLoading } = useProducts();
+  const { data: products = [], isLoading: isProductListLoading } = useProducts();
+  const { data: notifications = [], isLoading: isNotificationListLoading } = useNotifications();
+  const { mutate: markNotifications } = useMarkNotifications();
+
+  const ingredients = ['rice', 'chicken'];
+  const { data: recipes = [], isLoading: isRecipeListLoading } = useGetRecipesByIngredients(ingredients, 3);
+
+  //console.log(JSON.stringify(recipes));
 
   const [notifVisible, setNotifVisible] = useState(false);
-  const [notifications, setNotifications] = useState(MOCK_NOTIFICATIONS);
-  const unreadCount = notifications.filter((n) => !n.read).length;
+
+  const unreadCount = notifications.filter((notification) => !notification.read).length;
 
   const handleMarkAllRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
+    const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
+    if (unreadIds.length === 0) return;
+
+    queryClient.setQueryData(['notifications'], (oldNotifications: Notification[] | undefined) => {
+      if (!oldNotifications) return [];
+      return oldNotifications.map((notification) => ({ ...notification, read: true }));
+    });
+
+    markNotifications(unreadIds);
   };
 
-  //TODO update spinner component
-  if (isLoading) {
+  if (isProductListLoading || isNotificationListLoading || isRecipeListLoading) {
     return <Spinner size="medium" />;
   }
 

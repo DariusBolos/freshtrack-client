@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useTheme, Layout, Input, Button, Text } from '@ui-kitten/components';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
-import { useLogin } from '@/hooks/auth/useAuth';
+import { useLogin } from '@/hooks/auth';
 import { TouchableOpacity, StyleSheet, View, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
