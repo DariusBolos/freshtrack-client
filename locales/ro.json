@@ -18,7 +18,12 @@
     "create_account": "Creează un cont nou",
     "validation_required_fields": "Te rugăm să completezi toate câmpurile obligatorii",
     "validation_email": "Te rugăm să introduci o adresă de email validă",
-    "validation_password": "Parola trebuie să aibă cel puțin 8 caractere și să includă cel puțin o literă și o cifră"
+    "validation_password": "Parola trebuie să aibă cel puțin 8 caractere și să includă cel puțin o literă și o cifră",
+    "error_network": "Nu am putut contacta serverul. Verifică conexiunea și încearcă din nou.",
+    "error_invalid_credentials": "Email sau parolă incorecte.",
+    "error_login_failed": "Autentificarea a eșuat. Încearcă din nou.",
+    "error_email_in_use": "Există deja un cont cu acest email.",
+    "error_register_failed": "Înregistrarea a eșuat. Încearcă din nou."
   },
   "home": {
     "welcome": "Bine ai venit!",

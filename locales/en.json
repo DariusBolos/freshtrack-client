@@ -18,7 +18,12 @@
     "create_account": "Create a new account",
     "validation_required_fields": "Please fill in all required fields",
     "validation_email": "Please enter a valid email address",
-    "validation_password": "Password must be at least 8 characters long and include at least one letter and one number"
+    "validation_password": "Password must be at least 8 characters long and include at least one letter and one number",
+    "error_network": "Could not reach the server. Check your connection and try again.",
+    "error_invalid_credentials": "Invalid email or password.",
+    "error_login_failed": "Login failed. Please try again.",
+    "error_email_in_use": "An account with this email already exists.",
+    "error_register_failed": "Registration failed. Please try again."
   },
   "home": {
     "welcome": "Welcome!",

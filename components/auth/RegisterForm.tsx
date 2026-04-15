@@ -6,6 +6,7 @@ import { useRegister } from '@/hooks/auth';
 import { TouchableOpacity, StyleSheet, View, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { isAxiosError } from 'axios';
 
 const RegisterForm = () => {
   const theme = useTheme();
@@ -17,9 +18,10 @@ const RegisterForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [secureTextEntry, setSecureTextEntry] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const { t } = useTranslation();
-  const { mutate } = useRegister();
+  const { mutate, isPending } = useRegister();
 
   const toggleSecureEntry = () => {
     setSecureTextEntry(!secureTextEntry);
@@ -49,15 +51,38 @@ const RegisterForm = () => {
       return;
     }
 
+    setAuthError(null);
+
     mutate(
       { firstName, lastName, email, password },
       {
         onSuccess: async (response) => {
+          setAuthError(null);
           await AsyncStorage.setItem('token', response.data.token);
           router.push('/home');
         },
-        onError: (err: any) => {
-          console.log('Registration failed:', err.response?.data?.message);
+        onError: (err: unknown) => {
+          if (isAxiosError(err)) {
+            const backendMessage =
+              typeof err.response?.data?.message === 'string' ? err.response.data.message : null;
+
+            if (backendMessage) {
+              setAuthError(backendMessage);
+              return;
+            }
+
+            if (!err.response) {
+              setAuthError(t('auth.error_network'));
+              return;
+            }
+
+            if (err.response.status === 409) {
+              setAuthError(t('auth.error_email_in_use'));
+              return;
+            }
+          }
+
+          setAuthError(t('auth.error_register_failed'));
         },
       },
     );
@@ -87,7 +112,10 @@ const RegisterForm = () => {
             <Input
               placeholder={t('auth.firstname')}
               value={firstName}
-              onChangeText={setFirstName}
+              onChangeText={(value) => {
+                setFirstName(value);
+                if (authError) setAuthError(null);
+              }}
               keyboardType="default"
               autoCapitalize="none"
               style={styles.input}
@@ -95,7 +123,10 @@ const RegisterForm = () => {
             <Input
               placeholder={t('auth.lastname')}
               value={lastName}
-              onChangeText={setLastName}
+              onChangeText={(value) => {
+                setLastName(value);
+                if (authError) setAuthError(null);
+              }}
               keyboardType="default"
               autoCapitalize="none"
               style={styles.input}
@@ -103,7 +134,10 @@ const RegisterForm = () => {
             <Input
               placeholder={t('auth.email')}
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(value) => {
+                setEmail(value);
+                if (authError) setAuthError(null);
+              }}
               keyboardType="email-address"
               autoCapitalize="none"
               accessoryRight={renderEmailIcon}
@@ -112,14 +146,22 @@ const RegisterForm = () => {
             <Input
               placeholder={t('auth.password')}
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(value) => {
+                setPassword(value);
+                if (authError) setAuthError(null);
+              }}
               secureTextEntry={secureTextEntry}
               accessoryRight={renderPasswordIcon}
               style={styles.input}
             />
           </View>
           <View style={styles.footer}>
-            <Button style={styles.registerButton} onPress={handleRegister}>
+            {authError ? (
+              <Text status="danger" style={styles.errorText}>
+                {authError}
+              </Text>
+            ) : null}
+            <Button style={styles.registerButton} onPress={handleRegister} disabled={isPending}>
               {t('auth.register')}
             </Button>
           </View>
@@ -179,6 +221,10 @@ const createStyles = (theme: any) =>
     footer: {
       marginBottom: 20,
       gap: 25,
+    },
+
+    errorText: {
+      textAlign: 'center',
     },
   });
 

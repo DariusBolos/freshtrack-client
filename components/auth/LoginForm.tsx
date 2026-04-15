@@ -6,6 +6,7 @@ import { useLogin } from '@/hooks/auth';
 import { TouchableOpacity, StyleSheet, View, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { isAxiosError } from 'axios';
 
 const LoginForm = () => {
   const theme = useTheme();
@@ -15,9 +16,10 @@ const LoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [secureTextEntry, setSecureTextEntry] = useState(true);
+  const [authError, setAuthError] = useState<string | null>(null);
 
   const { t } = useTranslation();
-  const { mutate } = useLogin();
+  const { mutate, isPending } = useLogin();
 
   const toggleSecureEntry = () => {
     setSecureTextEntry(!secureTextEntry);
@@ -37,15 +39,38 @@ const LoginForm = () => {
       return;
     }
 
+    setAuthError(null);
+
     mutate(
       { email, password },
       {
         onSuccess: async (response) => {
+          setAuthError(null);
           await AsyncStorage.setItem('token', response.data.token);
           router.push('/home');
         },
-        onError: (err: any) => {
-          console.log('Login failed:', err.response?.data?.message);
+        onError: (err: unknown) => {
+          if (isAxiosError(err)) {
+            const backendMessage =
+              typeof err.response?.data?.message === 'string' ? err.response.data.message : null;
+
+            if (backendMessage) {
+              setAuthError(backendMessage);
+              return;
+            }
+
+            if (!err.response) {
+              setAuthError(t('auth.error_network'));
+              return;
+            }
+
+            if (err.response.status === 401) {
+              setAuthError(t('auth.error_invalid_credentials'));
+              return;
+            }
+          }
+
+          setAuthError(t('auth.error_login_failed'));
         },
       },
     );
@@ -80,7 +105,10 @@ const LoginForm = () => {
             <Input
               placeholder={t('auth.email')}
               value={email}
-              onChangeText={setEmail}
+              onChangeText={(value) => {
+                setEmail(value);
+                if (authError) setAuthError(null);
+              }}
               keyboardType="email-address"
               autoCapitalize="none"
               accessoryRight={renderEmailIcon}
@@ -89,7 +117,10 @@ const LoginForm = () => {
             <Input
               placeholder={t('auth.password')}
               value={password}
-              onChangeText={setPassword}
+              onChangeText={(value) => {
+                setPassword(value);
+                if (authError) setAuthError(null);
+              }}
               secureTextEntry={secureTextEntry}
               accessoryRight={renderPasswordIcon}
               style={styles.input}
@@ -99,7 +130,12 @@ const LoginForm = () => {
             </TouchableOpacity>
           </View>
           <View style={styles.footer}>
-            <Button style={styles.loginButton} onPress={handleLogin}>
+            {authError ? (
+              <Text status="danger" style={styles.errorText}>
+                {authError}
+              </Text>
+            ) : null}
+            <Button style={styles.loginButton} onPress={handleLogin} disabled={isPending}>
               {t('auth.login')}
             </Button>
             <TouchableOpacity onPress={handleNavigationToRegister}>
@@ -170,6 +206,10 @@ const createStyles = (theme: any) =>
     footer: {
       marginBottom: 20,
       gap: 25,
+    },
+
+    errorText: {
+      textAlign: 'center',
     },
   });
 
