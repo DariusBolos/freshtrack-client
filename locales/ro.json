@@ -4,6 +4,12 @@
     "cancel": "Anulează",
     "delete": "Șterge"
   },
+  "tabs": {
+    "home": "Acasă",
+    "scan": "Scanare",
+    "inventory": "Inventar",
+    "settings": "Setări"
+  },
   "auth": {
     "login": "Autentificare",
     "logout": "Deconectare",
@@ -121,6 +127,21 @@
     "empty": "Nicio notificare încă.",
     "mark_all_read": "Marchează toate ca citite",
     "view_product": "Vezi produsul"
+  },
+  "scan": {
+    "title": "Scanează bonul",
+    "take_photo_hint": "Fă o poză bonului pentru a detecta produsele alimentare.",
+    "open_camera": "Deschide camera",
+    "retake_photo": "Refă poza",
+    "get_food_products": "Obține produsele",
+    "ready_to_scan": "Poza este gata. Apasă 'Obține produsele' pentru scanare.",
+    "uploading": "Analizăm bonul...",
+    "results_title": "Produse detectate",
+    "no_products_found": "Nu au fost detectate produse alimentare în această imagine.",
+    "upload_failed": "Nu am putut analiza imaginea. Încearcă o altă poză.",
+    "network_error": "Eroare de rețea la încărcarea imaginii.",
+    "permission_title": "Este necesară permisiunea pentru cameră",
+    "permission_message": "Permite accesul la cameră pentru a fotografia bonul."
   },
   "invite": {
     "title": "Invitație în familie",

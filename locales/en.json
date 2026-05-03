@@ -4,6 +4,12 @@
     "cancel": "Cancel",
     "delete": "Delete"
   },
+  "tabs": {
+    "home": "Home",
+    "scan": "Scan",
+    "inventory": "Inventory",
+    "settings": "Settings"
+  },
   "auth": {
     "login": "Login",
     "logout": "Logout",
@@ -23,7 +29,8 @@
     "error_invalid_credentials": "Invalid email or password.",
     "error_login_failed": "Login failed. Please try again.",
     "error_email_in_use": "An account with this email already exists.",
-    "error_register_failed": "Registration failed. Please try again."
+    "error_register_failed": "Registration failed. Please try again.",
+    "loading": "Please wait..."
   },
   "home": {
     "welcome": "Welcome!",
@@ -118,6 +125,21 @@
     "empty": "No notifications yet.",
     "mark_all_read": "Mark all read",
     "view_product": "View product"
+  },
+  "scan": {
+    "title": "Scan Receipt",
+    "take_photo_hint": "Take a photo of your receipt to detect food products.",
+    "open_camera": "Open Camera",
+    "retake_photo": "Retake Photo",
+    "get_food_products": "Get food products",
+    "ready_to_scan": "Photo ready. Tap 'Get food products' to start scanning.",
+    "uploading": "Analyzing receipt...",
+    "results_title": "Detected products",
+    "no_products_found": "No food products were detected in this image.",
+    "upload_failed": "Could not analyze this image. Please try another photo.",
+    "network_error": "Network error while uploading the image.",
+    "permission_title": "Camera permission needed",
+    "permission_message": "Allow camera access to take a receipt photo."
   },
   "invite": {
     "title": "Family Invite",

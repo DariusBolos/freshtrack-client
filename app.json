@@ -40,7 +40,13 @@
           }
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      [
+        "expo-image-picker",
+        {
+          "cameraPermission": "Allow FreshTrack to open your camera so you can scan receipts."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

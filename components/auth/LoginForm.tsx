@@ -7,6 +7,7 @@ import { TouchableOpacity, StyleSheet, View, TouchableWithoutFeedback, Keyboard 
 import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isAxiosError } from 'axios';
+import Spinner from '@/components/Spinner';
 
 const LoginForm = () => {
   const theme = useTheme();
@@ -143,6 +144,11 @@ const LoginForm = () => {
             </TouchableOpacity>
           </View>
         </View>
+        {isPending ? (
+          <View style={styles.loadingOverlay}>
+            <Spinner size="large" label={t('auth.loading')} />
+          </View>
+        ) : null}
       </Layout>
     </TouchableWithoutFeedback>
   );
@@ -210,6 +216,14 @@ const createStyles = (theme: any) =>
 
     errorText: {
       textAlign: 'center',
+    },
+
+    loadingOverlay: {
+      ...StyleSheet.absoluteFillObject,
+      backgroundColor: theme['background-basic-color-1'] + 'CC',
+      alignItems: 'center',
+      justifyContent: 'center',
+      zIndex: 10,
     },
   });
 

@@ -3,9 +3,12 @@ import { View, ScrollView, Pressable, StyleSheet, Alert } from 'react-native';
 import { Text, useTheme, Modal, Card } from '@ui-kitten/components';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSettings, ThemeMode, Language } from '@/hooks/useSettings';
 import SettingsSection from '@/components/settings/SettingsSection';
 import SettingsRow from '@/components/settings/SettingsRow';
+import { queryClient } from '@/api/queryClient';
 
 const THEME_OPTIONS: { value: ThemeMode; labelKey: string; icon: string }[] = [
   { value: 'light', labelKey: 'settings.theme_light', icon: 'sun' },
@@ -23,11 +26,22 @@ const REMINDER_OPTIONS = [1, 2, 3, 5, 7];
 const SettingsTab = () => {
   const theme = useTheme();
   const { t } = useTranslation();
+  const router = useRouter();
   const settings = useSettings();
 
   const [themeModalVisible, setThemeModalVisible] = useState(false);
   const [langModalVisible, setLangModalVisible] = useState(false);
   const [reminderModalVisible, setReminderModalVisible] = useState(false);
+
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem('token');
+    } finally {
+      // Drop stale authenticated data before returning to auth screens.
+      queryClient.clear();
+      router.replace('/login');
+    }
+  };
 
   const themeLabelKey = THEME_OPTIONS.find((o) => o.value === settings.themeMode)?.labelKey ?? '';
   const langLabel = LANGUAGE_OPTIONS.find((o) => o.value === settings.language)?.label ?? '';
@@ -125,7 +139,7 @@ const SettingsTab = () => {
             onPress={() =>
               Alert.alert(t('auth.logout'), t('settings.logout_confirm'), [
                 { text: t('common.cancel'), style: 'cancel' },
-                { text: t('auth.logout'), style: 'destructive', onPress: () => {} },
+                { text: t('auth.logout'), style: 'destructive', onPress: handleLogout },
               ])
             }
             isLast
