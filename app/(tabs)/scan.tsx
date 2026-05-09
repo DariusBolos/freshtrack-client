@@ -1,13 +1,16 @@
 import { useMemo, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, View } from 'react-native';
-import { Button, Card, Input, Layout, Modal, Spinner, Text, useTheme } from '@ui-kitten/components';
+import { Alert, Pressable, ScrollView, StyleSheet, View, Modal as RNModal, Platform } from 'react-native';
+import { Button, Card, IndexPath, Input, Layout, Modal, Select, SelectItem, Spinner, Text, useTheme } from '@ui-kitten/components';
 import { FontAwesome5 } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Image } from 'expo-image';
 import { isAxiosError } from 'axios';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 import { useScanReceipt } from '@/hooks/useScan';
 import { api } from '@/api/axios';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { queryClient } from '@/api/queryClient';
 
 type ParsedProduct = {
   id: string;
@@ -18,6 +21,57 @@ type ParsedProduct = {
   purchaseDate: string;
   expiryDate: string;
   category: string;
+};
+
+const CATEGORY_OPTIONS = [
+  { label: 'Dairy', value: 'dairy' },
+  { label: 'Meat', value: 'meat' },
+  { label: 'Fruit', value: 'fruit' },
+  { label: 'Vegetable', value: 'vegetable' },
+  { label: 'Bakery', value: 'bakery' },
+  { label: 'Beverage', value: 'beverage' },
+  { label: 'Frozen', value: 'frozen' },
+  { label: 'Other', value: 'other' },
+];
+
+const UNIT_OPTIONS = [
+  { label: 'Item', value: 'item' },
+  { label: 'g', value: 'g' },
+  { label: 'kg', value: 'kg' },
+  { label: 'ml', value: 'ml' },
+  { label: 'l', value: 'l' },
+  { label: 'Pack', value: 'pack' },
+  { label: 'Box', value: 'box' },
+  { label: 'Bag', value: 'bag' },
+];
+
+const EXPIRY_DAYS_BY_CATEGORY: Record<string, number> = {
+  dairy: 7,
+  meat: 3,
+  fruit: 7,
+  vegetable: 7,
+  bakery: 5,
+  beverage: 30,
+  frozen: 90,
+  other: 7,
+};
+
+const getOptionIndex = (value: string, options: { label: string; value: string }[]) => {
+  const index = options.findIndex((option) => option.value === value);
+  return new IndexPath(index >= 0 ? index : 0);
+};
+
+const toDateInput = (date: Date) => date.toISOString().slice(0, 10);
+
+const addDays = (date: Date, days: number) => {
+  const copy = new Date(date);
+  copy.setDate(copy.getDate() + days);
+  return copy;
+};
+
+const getDefaultExpiryDate = (category: string, baseDate: Date) => {
+  const days = EXPIRY_DAYS_BY_CATEGORY[category] ?? EXPIRY_DAYS_BY_CATEGORY.other;
+  return toDateInput(addDays(baseDate, days));
 };
 
 const formatDateValue = (value: unknown) => (typeof value === 'string' ? value : '');
@@ -82,12 +136,17 @@ const extractProducts = (payload: unknown): ParsedProduct[] => {
 const ScanTab = () => {
   const theme = useTheme();
   const { t } = useTranslation();
+  const router = useRouter();
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [products, setProducts] = useState<ParsedProduct[]>([]);
   const [scanError, setScanError] = useState<string | null>(null);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [draftProducts, setDraftProducts] = useState<ParsedProduct[]>([]);
+  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
+  const [editProduct, setEditProduct] = useState<ParsedProduct | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [showExpiryPicker, setShowExpiryPicker] = useState(false);
+  const [tempExpiryDate, setTempExpiryDate] = useState<Date | null>(null);
+  const [unitIndex, setUnitIndex] = useState(new IndexPath(0));
+  const [categoryIndex, setCategoryIndex] = useState(new IndexPath(0));
   const scanMutation = useScanReceipt();
 
   const hasResults = products.length > 0;
@@ -122,6 +181,29 @@ const ScanTab = () => {
     setProducts([]);
   };
 
+  const handleBrowsePhotos = async () => {
+    setScanError(null);
+
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert(t('scan.gallery_permission_title'), t('scan.gallery_permission_message'));
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      allowsEditing: false,
+      quality: 0.9,
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    });
+
+    if (result.canceled || result.assets.length === 0) {
+      return;
+    }
+
+    setImageUri(result.assets[0].uri);
+    setProducts([]);
+  };
+
   const handleGetFoodProducts = () => {
     if (!imageUri || scanMutation.isPending) return;
 
@@ -139,9 +221,6 @@ const ScanTab = () => {
           setScanError(responseMessage ?? t('scan.no_products_found'));
           return;
         }
-
-        setDraftProducts(parsed);
-        setIsModalVisible(true);
       },
       onError: (error: unknown) => {
         if (isAxiosError(error)) {
@@ -163,50 +242,96 @@ const ScanTab = () => {
     });
   };
 
-  const handleAddDraft = () => {
-    setDraftProducts((current) => [
-      ...current,
-      {
-        id: `new-${Date.now()}`,
-        name: '',
-        quantity: '1',
-        unit: 'item',
-        purchaseDate: '',
-        expiryDate: '',
-        category: 'other',
-      },
-    ]);
-  };
-
-  const updateDraftField = (id: string, field: keyof ParsedProduct, value: string) => {
-    setDraftProducts((current) =>
-      current.map((item) => (item.id === id ? { ...item, [field]: value } : item))
-    );
-  };
-
-  const normalizeDraft = (draft: ParsedProduct) => {
+  const sanitizeProduct = (draft: ParsedProduct): ParsedProduct => {
     const quantity = Number(draft.quantity);
+    const category = (draft.category.trim() || 'other').toLowerCase();
+    const purchaseDate = draft.purchaseDate.trim() || toDateInput(new Date());
+    const expiryDate = draft.expiryDate.trim() || getDefaultExpiryDate(category, new Date(purchaseDate));
+
     return {
-      serverId: draft.serverId,
+      ...draft,
       name: draft.name.trim(),
-      quantity: Number.isFinite(quantity) && quantity > 0 ? quantity : 1,
+      quantity: Number.isFinite(quantity) && quantity > 0 ? String(quantity) : '1',
       unit: draft.unit.trim() || 'item',
-      purchaseDate: draft.purchaseDate.trim(),
-      expiryDate: draft.expiryDate.trim(),
-      category: draft.category.trim() || 'other',
+      purchaseDate,
+      expiryDate,
+      category,
     };
   };
 
-  const handleConfirmDrafts = async () => {
+  const toConfirmItem = (draft: ParsedProduct) => {
+    const sanitized = sanitizeProduct(draft);
+    return {
+      name: sanitized.name,
+      quantity: Number(sanitized.quantity),
+      unit: sanitized.unit,
+      purchaseDate: sanitized.purchaseDate,
+      expiryDate: sanitized.expiryDate,
+      category: sanitized.category,
+    };
+  };
+
+  const openEditProduct = (product: ParsedProduct) => {
+    const category = (product.category || 'other').toLowerCase();
+    const purchaseDate = product.purchaseDate?.trim() || toDateInput(new Date());
+    const expiryDate = product.expiryDate?.trim() || getDefaultExpiryDate(category, new Date(purchaseDate));
+
+    setEditProduct({
+      ...product,
+      category,
+      purchaseDate,
+      expiryDate,
+    });
+    setUnitIndex(getOptionIndex((product.unit || 'item').toLowerCase(), UNIT_OPTIONS));
+    setCategoryIndex(getOptionIndex(category, CATEGORY_OPTIONS));
+    setIsEditModalVisible(true);
+  };
+
+  const closeEditProduct = () => {
+    setIsEditModalVisible(false);
+    setEditProduct(null);
+    setShowExpiryPicker(false);
+    setTempExpiryDate(null);
+  };
+
+  const updateEditField = (field: keyof ParsedProduct, value: string) => {
+    setEditProduct((current) => (current ? { ...current, [field]: value } : current));
+  };
+
+  const handleDeleteEdit = () => {
+    if (!editProduct) return;
+    setProducts((current) => current.filter((item) => item.id !== editProduct.id));
+    closeEditProduct();
+  };
+
+  const handleSaveEdit = () => {
+    if (!editProduct) return;
+    const sanitized = sanitizeProduct(editProduct);
+    const invalid = !sanitized.name;
+
+    if (invalid) {
+      Alert.alert(t('scan.validation_title'), t('scan.validation_message'));
+      return;
+    }
+
+    setProducts((current) =>
+      current.map((item) => (item.id === sanitized.id ? { ...item, ...sanitized } : item))
+    );
+    closeEditProduct();
+  };
+
+  const handleConfirmProducts = async () => {
     if (isSaving) return;
 
-    const normalized = draftProducts.map(normalizeDraft);
+    if (products.length === 0) {
+      Alert.alert(t('scan.validation_title'), t('scan.no_products_found'));
+      return;
+    }
+
+    const normalized = products.map(toConfirmItem);
     const invalid = normalized.some(
       (item) =>
-        !item.name ||
-        !item.purchaseDate ||
-        !item.expiryDate ||
-        !item.category
+        !item.name
     );
 
     if (invalid) {
@@ -217,36 +342,51 @@ const ScanTab = () => {
     try {
       setIsSaving(true);
 
-      const responses = await Promise.all(
-        normalized.map(async (item) => {
-          const payload = {
-            name: item.name,
-            quantity: item.quantity,
-            unit: item.unit,
-            purchaseDate: item.purchaseDate,
-            expiryDate: item.expiryDate,
-            category: item.category,
-          };
+      const response = await api.post('/api/scan/receipt/confirm', {
+        items: normalized,
+      });
 
-          if (item.serverId) {
-            const response = await api.put(`/api/products/${item.serverId}`, payload);
-            return response.data;
-          }
+      const updated = extractProducts({ products: response.data });
 
-          const response = await api.post('/api/products', payload);
-          return response.data;
-        })
-      );
-
-      const updated = extractProducts({ products: responses });
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
       setProducts(updated);
-      setDraftProducts(updated);
-      setIsModalVisible(false);
-    } catch (error) {
+      setImageUri(null);
+      setScanError(null);
+      router.replace({
+        pathname: '/scan-success',
+        params: { count: String(updated.length) },
+      });
+    } catch {
       Alert.alert(t('scan.save_error_title'), t('scan.save_error_message'));
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const scheduleStateUpdate = (update: () => void) => {
+    setTimeout(update, 0);
+  };
+
+  const applyUnitSelection = (selected: IndexPath) => {
+    if (selected.row === unitIndex.row) return;
+    scheduleStateUpdate(() => {
+      setUnitIndex(selected);
+      updateEditField('unit', UNIT_OPTIONS[selected.row]?.value ?? 'item');
+    });
+  };
+
+  const applyCategorySelection = (selected: IndexPath) => {
+    if (selected.row === categoryIndex.row) return;
+    scheduleStateUpdate(() => {
+      setCategoryIndex(selected);
+      updateEditField('category', CATEGORY_OPTIONS[selected.row]?.value ?? 'other');
+    });
+  };
+
+  const handleExpiryFieldPress = () => {
+    const fallback = editProduct?.expiryDate ? new Date(editProduct.expiryDate) : new Date();
+    setTempExpiryDate(fallback);
+    setShowExpiryPicker(true);
   };
 
   return (
@@ -268,11 +408,12 @@ const ScanTab = () => {
           )}
         </Card>
 
-        {/*TODO: change button color to match current buttons*/}
-
         <View style={styles.actions}>
           <Button onPress={handleCapturePhoto} status="success" appearance={imageUri ? 'outline' : 'filled'} style={styles.actionButton}>
             {imageUri ? t('scan.retake_photo') : t('scan.open_camera')}
+          </Button>
+          <Button onPress={handleBrowsePhotos} status="success" appearance="outline" style={styles.actionButton}>
+            {t('scan.browse_photos')}
           </Button>
           <Button
             onPress={handleGetFoodProducts}
@@ -306,6 +447,7 @@ const ScanTab = () => {
             {products.map((product) => (
               <Pressable
                 key={product.id}
+                onPress={() => openEditProduct(product)}
                 style={[
                   styles.resultRow,
                   {
@@ -318,85 +460,143 @@ const ScanTab = () => {
                 <Text style={[styles.resultText, { color: theme['text-basic-color'] }]}>{product.name}</Text>
               </Pressable>
             ))}
+            <Button
+              onPress={handleConfirmProducts}
+              disabled={isSaving}
+              status="success"
+              style={styles.actionButton}
+            >
+              {isSaving ? t('scan.saving') : t('scan.confirm')}
+            </Button>
           </View>
         ) : null}
       </ScrollView>
 
       <Modal
-        visible={isModalVisible}
+        visible={isEditModalVisible && !!editProduct}
         backdropStyle={styles.modalBackdrop}
-        onBackdropPress={() => setIsModalVisible(false)}
       >
-        <Card style={styles.modalCard} disabled>
+        <Card style={[styles.modalCard, { backgroundColor: theme['background-basic-color-1'] }]} disabled>
           <Text category="s1" style={{ color: theme['text-basic-color'] }}>
-            {t('scan.review_title')}
+            {t('scan.edit_title')}
           </Text>
           <Text appearance="hint" style={styles.modalSubtitle}>
-            {t('scan.review_subtitle')}
+            {t('scan.edit_subtitle')}
           </Text>
 
-          <ScrollView style={styles.modalList} contentContainerStyle={styles.modalListContent}>
-            {draftProducts.map((item) => (
-              <View key={item.id} style={styles.modalItem}>
+          {editProduct ? (
+            <View style={styles.modalItem}>
+              <Input
+                label={t('scan.field_name')}
+                value={editProduct.name}
+                placeholder={t('scan.field_name')}
+                onChangeText={(value) => updateEditField('name', value)}
+              />
+              <View style={styles.modalRow}>
                 <Input
-                  label={t('scan.field_name')}
-                  value={item.name}
-                  placeholder={t('scan.field_name')}
-                  onChangeText={(value) => updateDraftField(item.id, 'name', value)}
+                  label={t('scan.field_quantity')}
+                  value={editProduct.quantity}
+                  keyboardType="decimal-pad"
+                  onChangeText={(value) => updateEditField('quantity', value)}
+                  style={styles.modalHalf}
                 />
-                <View style={styles.modalRow}>
-                  <Input
-                    label={t('scan.field_quantity')}
-                    value={item.quantity}
-                    keyboardType="decimal-pad"
-                    onChangeText={(value) => updateDraftField(item.id, 'quantity', value)}
-                    style={styles.modalHalf}
-                  />
-                  <Input
-                    label={t('scan.field_unit')}
-                    value={item.unit}
-                    onChangeText={(value) => updateDraftField(item.id, 'unit', value)}
-                    style={styles.modalHalf}
-                  />
-                </View>
-                <View style={styles.modalRow}>
-                  <Input
-                    label={t('scan.field_purchase_date')}
-                    placeholder="YYYY-MM-DD"
-                    value={item.purchaseDate}
-                    onChangeText={(value) => updateDraftField(item.id, 'purchaseDate', value)}
-                    style={styles.modalHalf}
-                  />
-                  <Input
-                    label={t('scan.field_expiry_date')}
-                    placeholder="YYYY-MM-DD"
-                    value={item.expiryDate}
-                    onChangeText={(value) => updateDraftField(item.id, 'expiryDate', value)}
-                    style={styles.modalHalf}
-                  />
-                </View>
-                <Input
-                  label={t('scan.field_category')}
-                  value={item.category}
-                  onChangeText={(value) => updateDraftField(item.id, 'category', value)}
-                />
+                <Select
+                  label={t('scan.field_unit')}
+                  selectedIndex={unitIndex}
+                  value={UNIT_OPTIONS[unitIndex.row]?.label ?? UNIT_OPTIONS[0].label}
+                  onSelect={(index) => {
+                    const selected = index as IndexPath;
+                    applyUnitSelection(selected);
+                  }}
+                  style={styles.modalHalf}
+                >
+                  {UNIT_OPTIONS.map((option) => (
+                    <SelectItem key={option.value} title={option.label} />
+                  ))}
+                </Select>
               </View>
-            ))}
-          </ScrollView>
+              <View style={styles.modalRow}>
+                <Pressable
+                  style={styles.modalHalf}
+                  onPressIn={handleExpiryFieldPress}
+                  hitSlop={8}
+                >
+                  <View pointerEvents="none">
+                    <Input
+                      label={t('scan.field_expiry_date')}
+                      placeholder="YYYY-MM-DD"
+                      value={editProduct.expiryDate}
+                      editable={false}
+                    />
+                  </View>
+                </Pressable>
+              </View>
+              <Select
+                label={t('scan.field_category')}
+                selectedIndex={categoryIndex}
+                value={CATEGORY_OPTIONS[categoryIndex.row]?.label ?? CATEGORY_OPTIONS[0].label}
+                onSelect={(index) => {
+                  const selected = index as IndexPath;
+                  applyCategorySelection(selected);
+                }}
+              >
+                {CATEGORY_OPTIONS.map((option) => (
+                  <SelectItem key={option.value} title={option.label} />
+                ))}
+              </Select>
+            </View>
+          ) : null}
 
           <View style={styles.modalActions}>
-            <Button appearance="ghost" onPress={() => setIsModalVisible(false)}>
+            <Button appearance="ghost" onPress={closeEditProduct}>
               {t('scan.cancel')}
             </Button>
-            <Button appearance="outline" onPress={handleAddDraft}>
-              {t('scan.add_item')}
+            <Button appearance="ghost" status="danger" onPress={handleDeleteEdit}>
+              {t('common.delete')}
             </Button>
-            <Button onPress={handleConfirmDrafts} disabled={isSaving}>
-              {isSaving ? t('scan.saving') : t('scan.confirm')}
+            <Button onPress={handleSaveEdit}>
+              {t('common.save')}
             </Button>
           </View>
         </Card>
       </Modal>
+
+      <RNModal
+        visible={showExpiryPicker}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowExpiryPicker(false)}
+      >
+        <View style={styles.pickerOverlay}>
+          <View style={[styles.pickerCard, { backgroundColor: theme['background-basic-color-1'] }]}>
+            <DateTimePicker
+              value={tempExpiryDate ?? new Date()}
+              mode="date"
+              display={Platform.OS === 'ios' ? 'inline' : 'spinner'}
+              onChange={(_event, selectedDate) => {
+                if (selectedDate) {
+                  setTempExpiryDate(selectedDate);
+                }
+              }}
+            />
+            <View style={styles.pickerActions}>
+              <Button appearance="ghost" onPress={() => setShowExpiryPicker(false)}>
+                {t('scan.cancel')}
+              </Button>
+              <Button
+                onPress={() => {
+                  if (tempExpiryDate) {
+                    updateEditField('expiryDate', toDateInput(tempExpiryDate));
+                  }
+                  setShowExpiryPicker(false);
+                }}
+              >
+                {t('common.save')}
+              </Button>
+            </View>
+          </View>
+        </View>
+      </RNModal>
     </Layout>
   );
 };
@@ -481,6 +681,7 @@ const styles = StyleSheet.create({
     maxWidth: 420,
     maxHeight: 600,
     gap: 12,
+    alignSelf: 'center',
   },
   modalSubtitle: {
     marginBottom: 4,
@@ -494,6 +695,9 @@ const styles = StyleSheet.create({
   modalItem: {
     gap: 10,
   },
+  modalItemActions: {
+    alignItems: 'flex-end',
+  },
   modalRow: {
     flexDirection: 'row',
     gap: 10,
@@ -506,6 +710,25 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 10,
     justifyContent: 'flex-end',
+  },
+  pickerOverlay: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    padding: 16,
+  },
+  pickerCard: {
+    width: '100%',
+    maxWidth: 420,
+    borderRadius: 16,
+    padding: 16,
+    gap: 12,
+  },
+  pickerActions: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    gap: 10,
   },
 });
 

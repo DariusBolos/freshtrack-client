@@ -15,7 +15,6 @@ import Spinner from '@/components/Spinner';
 import { useNotifications, useMarkNotifications, useDeleteNotification, useExpiryNotificationSync } from '@/hooks/useNotifications';
 import { queryClient } from '@/api/queryClient';
 import { Notification } from '@/types/dashboardTypes';
-import { useGetRecipesByIngredients } from '@/hooks/useRecipes';
 
 const HomeTab = () => {
   const { t } = useTranslation();
@@ -29,11 +28,6 @@ const HomeTab = () => {
 
   // POST expiry notifications for products that don't have one yet
   useExpiryNotificationSync(products, notifications, reminderDaysBefore);
-
-  const ingredients = ['rice', 'chicken'];
-  const { data: recipes = [], isLoading: isRecipeListLoading } = useGetRecipesByIngredients(ingredients, 3);
-
-  //console.log(JSON.stringify(recipes));
 
   const [notifVisible, setNotifVisible] = useState(false);
 
@@ -56,7 +50,7 @@ const HomeTab = () => {
     markNotifications(unreadIds);
   };
 
-  if (isProductListLoading || isNotificationListLoading || isRecipeListLoading) {
+  if (isProductListLoading || isNotificationListLoading) {
     return <Spinner size="medium" />;
   }
 

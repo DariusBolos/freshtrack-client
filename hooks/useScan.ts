@@ -1,7 +1,7 @@
 import { useMutation } from '@tanstack/react-query';
 import { api } from '@/api/axios';
 
-const scanEndpoint = process.env.EXPO_PUBLIC_SCAN_ENDPOINT ?? '/api/scan/food-products';
+const scanEndpoint = process.env.EXPO_PUBLIC_SCAN_ENDPOINT ?? '/api/scan/receipt';
 
 const getMimeType = (uri: string) => {
   const extension = uri.split('.').pop()?.toLowerCase();
@@ -36,4 +36,3 @@ export const useScanReceipt = () => {
     },
   });
 };
-
