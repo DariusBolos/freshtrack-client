@@ -5,7 +5,8 @@ import { FontAwesome5 } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useSettings } from '@/hooks/useSettings';
 import { useProducts } from '@/hooks/useProducts';
-import { MOCK_STATS, MOCK_RECIPES, MOCK_FAMILY } from '@/data/mockDashboard';
+import { useStats } from '@/hooks/useStats';
+import { MOCK_RECIPES, MOCK_FAMILY } from '@/data/mockDashboard';
 import StatCard from '@/components/home/StatCard';
 import ExpiryChart from '@/components/home/ExpiryChart';
 import RecipeCard from '@/components/home/RecipeCard';
@@ -22,6 +23,7 @@ const HomeTab = () => {
   const { firstName, reminderDaysBefore } = useSettings();
 
   const { data: products = [], isLoading: isProductListLoading } = useProducts();
+  const { data: stats, isLoading: isStatsLoading } = useStats();
   const { data: notifications = [], isLoading: isNotificationListLoading } = useNotifications();
   const { mutate: markNotifications } = useMarkNotifications();
   const { mutate: deleteNotification } = useDeleteNotification();
@@ -50,7 +52,18 @@ const HomeTab = () => {
     markNotifications(unreadIds);
   };
 
-  if (isProductListLoading || isNotificationListLoading) {
+  const statsSnapshot =
+    stats ??
+    ({
+      totalProducts: 0,
+      expiringToday: 0,
+      expiringSoon: 0,
+      foodSaved: 0,
+      wasteAvoided: 0,
+      receiptsScanned: 0,
+    } as const);
+
+  if (isProductListLoading || isNotificationListLoading || isStatsLoading) {
     return <Spinner size="medium" />;
   }
 
@@ -83,20 +96,30 @@ const HomeTab = () => {
 
         <Text style={[styles.sectionTitle, { color: theme['color-primary-500'] }]}>{t('home.your_impact')}</Text>
         <View style={styles.statsRow}>
-          <StatCard icon="apple-alt" label={t('home.food_saved')} value={String(MOCK_STATS.foodSaved)} color={theme['color-primary-500']} />
+          <StatCard
+            icon="apple-alt"
+            label={t('home.food_saved')}
+            value={String(statsSnapshot.foodSaved)}
+            color={theme['color-primary-500']}
+          />
           <StatCard
             icon="weight"
             label={t('home.waste_avoided')}
-            value={`${MOCK_STATS.wasteAvoided} kg`}
+            value={`${statsSnapshot.wasteAvoided} kg`}
             color={theme['color-accent-500']}
           />
-          <StatCard icon="receipt" label={t('home.receipts_scanned')} value={String(MOCK_STATS.receiptsScanned)} color="#64B5F6" />
+          <StatCard icon="receipt" label={t('home.receipts_scanned')} value={String(statsSnapshot.receiptsScanned)} color="#64B5F6" />
         </View>
 
         <View style={styles.statsRow}>
-          <StatCard icon="boxes" label={t('home.total_products')} value={String(MOCK_STATS.totalProducts)} />
-          <StatCard icon="exclamation-triangle" label={t('home.expiring_today')} value={String(MOCK_STATS.expiringToday)} color="#F44336" />
-          <StatCard icon="clock" label={t('home.expiring_soon')} value={String(MOCK_STATS.expiringSoon)} color="#FFA000" />
+          <StatCard icon="boxes" label={t('home.total_products')} value={String(statsSnapshot.totalProducts)} />
+          <StatCard
+            icon="exclamation-triangle"
+            label={t('home.expiring_today')}
+            value={String(statsSnapshot.expiringToday)}
+            color="#F44336"
+          />
+          <StatCard icon="clock" label={t('home.expiring_soon')} value={String(statsSnapshot.expiringSoon)} color="#FFA000" />
         </View>
 
         <View style={styles.sectionSpacing}>

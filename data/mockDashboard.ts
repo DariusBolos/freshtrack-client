@@ -1,13 +1,4 @@
-import { DashboardStats, Recipe, FamilyMember, Notification } from '@/types/dashboardTypes';
-
-export const MOCK_STATS: DashboardStats = {
-  totalProducts: 10,
-  expiringToday: 2,
-  expiringSoon: 3,
-  foodSaved: 47,
-  wasteAvoided: 12.5,
-  receiptsScanned: 23,
-};
+import { Recipe, FamilyMember, Notification } from '@/types/dashboardTypes';
 
 export const MOCK_RECIPES: Recipe[] = [
   {

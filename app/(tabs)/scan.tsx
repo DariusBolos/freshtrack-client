@@ -152,11 +152,10 @@ const ScanTab = () => {
   const hasResults = products.length > 0;
 
   const emptyStateMessage = useMemo(() => {
-    if (scanMutation.isPending) return t('scan.uploading');
     if (scanError) return scanError;
     if (imageUri) return t('scan.ready_to_scan');
     return t('scan.take_photo_hint');
-  }, [scanMutation.isPending, scanError, imageUri, t]);
+  }, [scanError, imageUri, t]);
 
   const handleCapturePhoto = async () => {
     setScanError(null);
@@ -212,9 +211,7 @@ const ScanTab = () => {
     scanMutation.mutate(imageUri, {
       onSuccess: (data) => {
         const parsed = extractProducts(data);
-        const responseMessage = typeof (data as { message?: unknown }).message === 'string'
-          ? (data as { message?: string }).message
-          : null;
+        const responseMessage = typeof (data as { message?: unknown }).message === 'string' ? (data as { message?: string }).message : null;
 
         setProducts(parsed);
         if (parsed.length === 0) {
@@ -314,9 +311,7 @@ const ScanTab = () => {
       return;
     }
 
-    setProducts((current) =>
-      current.map((item) => (item.id === sanitized.id ? { ...item, ...sanitized } : item))
-    );
+    setProducts((current) => current.map((item) => (item.id === sanitized.id ? { ...item, ...sanitized } : item)));
     closeEditProduct();
   };
 
@@ -329,10 +324,7 @@ const ScanTab = () => {
     }
 
     const normalized = products.map(toConfirmItem);
-    const invalid = normalized.some(
-      (item) =>
-        !item.name
-    );
+    const invalid = normalized.some((item) => !item.name);
 
     if (invalid) {
       Alert.alert(t('scan.validation_title'), t('scan.validation_message'));
@@ -460,22 +452,14 @@ const ScanTab = () => {
                 <Text style={[styles.resultText, { color: theme['text-basic-color'] }]}>{product.name}</Text>
               </Pressable>
             ))}
-            <Button
-              onPress={handleConfirmProducts}
-              disabled={isSaving}
-              status="success"
-              style={styles.actionButton}
-            >
+            <Button onPress={handleConfirmProducts} disabled={isSaving} status="success" style={styles.actionButton}>
               {isSaving ? t('scan.saving') : t('scan.confirm')}
             </Button>
           </View>
         ) : null}
       </ScrollView>
 
-      <Modal
-        visible={isEditModalVisible && !!editProduct}
-        backdropStyle={styles.modalBackdrop}
-      >
+      <Modal visible={isEditModalVisible && !!editProduct} backdropStyle={styles.modalBackdrop}>
         <Card style={[styles.modalCard, { backgroundColor: theme['background-basic-color-1'] }]} disabled>
           <Text category="s1" style={{ color: theme['text-basic-color'] }}>
             {t('scan.edit_title')}
@@ -516,18 +500,9 @@ const ScanTab = () => {
                 </Select>
               </View>
               <View style={styles.modalRow}>
-                <Pressable
-                  style={styles.modalHalf}
-                  onPressIn={handleExpiryFieldPress}
-                  hitSlop={8}
-                >
+                <Pressable style={styles.modalHalf} onPressIn={handleExpiryFieldPress} hitSlop={8}>
                   <View pointerEvents="none">
-                    <Input
-                      label={t('scan.field_expiry_date')}
-                      placeholder="YYYY-MM-DD"
-                      value={editProduct.expiryDate}
-                      editable={false}
-                    />
+                    <Input label={t('scan.field_expiry_date')} placeholder="YYYY-MM-DD" value={editProduct.expiryDate} editable={false} />
                   </View>
                 </Pressable>
               </View>
@@ -554,19 +529,12 @@ const ScanTab = () => {
             <Button appearance="ghost" status="danger" onPress={handleDeleteEdit}>
               {t('common.delete')}
             </Button>
-            <Button onPress={handleSaveEdit}>
-              {t('common.save')}
-            </Button>
+            <Button onPress={handleSaveEdit}>{t('common.save')}</Button>
           </View>
         </Card>
       </Modal>
 
-      <RNModal
-        visible={showExpiryPicker}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setShowExpiryPicker(false)}
-      >
+      <RNModal visible={showExpiryPicker} transparent animationType="fade" onRequestClose={() => setShowExpiryPicker(false)}>
         <View style={styles.pickerOverlay}>
           <View style={[styles.pickerCard, { backgroundColor: theme['background-basic-color-1'] }]}>
             <DateTimePicker
