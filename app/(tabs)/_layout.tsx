@@ -48,6 +48,13 @@ const TabLayout = () => {
         }}
       />
       <Tabs.Screen
+        name="recipes"
+        options={{
+          title: t('tabs.recipes'),
+          tabBarIcon: ({ color }) => <FontAwesome5 size={defaultIconSize} name="utensils" color={color} />,
+        }}
+      />
+      <Tabs.Screen
         name="settings"
         options={{
           title: t('tabs.settings'),

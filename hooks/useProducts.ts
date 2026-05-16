@@ -3,7 +3,7 @@ import { api } from '@/api/axios';
 import { queryClient as qc } from '@/api/queryClient';
 import { FoodProduct } from '@/types/productTypes';
 
-const baseUrl = '/api/products';
+const baseUrl = '/api/household/products';
 
 export const useProducts = () => {
   return useQuery({
@@ -19,7 +19,7 @@ export const useProduct = (id: string) => {
   return useQuery({
     queryKey: ['product', id],
     queryFn: async () => {
-      const response = await api.get<FoodProduct>(`${baseUrl}/${id}`);
+      const response = await api.get<FoodProduct>(`/api/products/${id}`);
       return response.data;
     },
   });
@@ -28,7 +28,7 @@ export const useProduct = (id: string) => {
 export const useDeleteProduct = () => {
   return useMutation({
     mutationFn: async (id: string) => {
-      await api.delete(`${baseUrl}/${id}`);
+      await api.delete(`/api/products/${id}`);
     },
     onMutate: async (id) => {
       await qc.cancelQueries({ queryKey: ['products'] });

@@ -8,6 +8,9 @@ import { getDaysUntilExpiry, getExpiryStatus, getExpiryColors } from '@/utils/pr
 import { useSettings } from '@/hooks/useSettings';
 import { useProduct, useDeleteProduct } from '@/hooks/useProducts';
 import { useNotifications, useDeleteNotification } from '@/hooks/useNotifications';
+import { useGenerateRecipe } from '@/hooks/useRecipes';
+import { queryClient } from '@/api/queryClient';
+import { Recipe } from '@/types/dashboardTypes';
 
 const CATEGORY_ICONS: Record<string, string> = {
   dairy: 'cheese',
@@ -32,6 +35,7 @@ const ProductDetail = () => {
   const { mutate: deleteProduct } = useDeleteProduct();
   const { data: notifications = [] } = useNotifications();
   const { mutate: deleteNotification } = useDeleteNotification();
+  const { mutateAsync: generateRecipe, isPending: isGeneratingRecipe } = useGenerateRecipe();
 
   const handleRemoveProduct = () => {
     Alert.alert(t('product_detail.remove_confirm_title'), t('product_detail.remove_confirm_message'), [
@@ -50,6 +54,22 @@ const ProductDetail = () => {
         },
       },
     ]);
+  };
+
+  const handleGenerateRecipe = async () => {
+    if (!product?.name) return;
+
+    try {
+      const recipe = await generateRecipe(product.name);
+      queryClient.setQueryData(['recipes'], (old: Recipe[] | undefined) => {
+        if (!old) return [recipe];
+        if (old.some((item) => item.id === recipe.id)) return old;
+        return [recipe, ...old];
+      });
+      router.push(`/recipe/${recipe.id}`);
+    } catch (_error) {
+      Alert.alert(t('product_detail.generate_error_title'), t('product_detail.generate_error_message'));
+    }
   };
 
   if (!product) {
@@ -125,10 +145,13 @@ const ProductDetail = () => {
 
         <Pressable
           style={({ pressed }) => [styles.recipeButton, { backgroundColor: theme['color-primary-500'], opacity: pressed ? 0.85 : 1 }]}
-          onPress={() => {}}
+          onPress={handleGenerateRecipe}
+          disabled={isGeneratingRecipe}
         >
           <FontAwesome5 name="utensils" size={18} color="#FFFFFF" />
-          <Text style={styles.recipeButtonText}>{t('product_detail.generate_recipes')}</Text>
+          <Text style={styles.recipeButtonText}>
+            {isGeneratingRecipe ? t('product_detail.generating_recipes') : t('product_detail.generate_recipes')}
+          </Text>
         </Pressable>
 
         <Text style={[styles.recipeHint, { color: theme['text-hint-color'] }]}>{t('product_detail.generate_recipes_hint')}</Text>

@@ -1,19 +1,52 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { View, StyleSheet, Pressable, Alert } from 'react-native';
 import { Text, useTheme } from '@ui-kitten/components';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { MOCK_NOTIFICATIONS } from '@/data/mockDashboard';
+import { useAcceptInvite, useDeclineInvite } from '@/hooks/useFamily';
+import { useDeleteNotification, useMarkNotifications, useNotifications } from '@/hooks/useNotifications';
+import { queryClient } from '@/api/queryClient';
+import { Notification } from '@/types/dashboardTypes';
 
 const InviteDetail = () => {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const theme = useTheme();
   const { t } = useTranslation();
+  const { data: notifications = [], isLoading: isNotificationsLoading } = useNotifications();
+  const { mutateAsync: acceptInvite, isPending: isAccepting } = useAcceptInvite();
+  const { mutateAsync: declineInvite, isPending: isDeclining } = useDeclineInvite();
+  const { mutate: deleteNotification } = useDeleteNotification();
+  const { mutate: markNotifications } = useMarkNotifications();
+  const markedRef = useRef(false);
 
-  const notification = MOCK_NOTIFICATIONS.find((n) => n.id === id && n.type === 'family_invite');
+  const inviteParam = Array.isArray(id) ? id[0] : id;
+
+  const notification = useMemo(() => {
+    return notifications.find((item) => item.inviteId === inviteParam || item.id === inviteParam) ?? null;
+  }, [notifications, inviteParam]);
+
   const [responded, setResponded] = useState<'accepted' | 'declined' | null>(null);
+
+  useEffect(() => {
+    if (!notification || notification.read || markedRef.current) return;
+    markedRef.current = true;
+
+    queryClient.setQueryData<Notification[]>(['notifications'], (old = []) =>
+      old.map((item) => (item.id === notification.id ? { ...item, read: true } : item)),
+    );
+
+    markNotifications([notification.id]);
+  }, [notification, markNotifications]);
+
+  if (isNotificationsLoading) {
+    return (
+      <View style={[styles.center, { backgroundColor: theme['background-basic-color-1'] }]}>
+        <Text style={[styles.notFoundText, { color: theme['text-hint-color'] }]}>{t('common.loading')}</Text>
+      </View>
+    );
+  }
 
   if (!notification) {
     return (
@@ -24,15 +57,32 @@ const InviteDetail = () => {
     );
   }
 
+  const inviteId = notification.inviteId ?? inviteParam;
+
   const initials = (notification.inviterName ?? '')
     .split(' ')
     .map((w) => w[0])
     .join('')
     .toUpperCase();
 
-  const handleAccept = () => {
-    setResponded('accepted');
-    // TODO: call API to accept invite
+  const handleAccept = async () => {
+    if (!inviteId) {
+      Alert.alert(t('invite.not_found'));
+      return;
+    }
+
+    try {
+      await acceptInvite(inviteId);
+      if (notification.id) {
+        deleteNotification(notification.id);
+      }
+      queryClient.invalidateQueries({ queryKey: ['householdMembers'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      setResponded('accepted');
+      router.replace('/(tabs)/home');
+    } catch {
+      Alert.alert(t('home.invite_error_title'), t('home.invite_error_message'));
+    }
   };
 
   const handleDecline = () => {
@@ -41,9 +91,22 @@ const InviteDetail = () => {
       {
         text: t('invite.decline'),
         style: 'destructive',
-        onPress: () => {
-          setResponded('declined');
-          // TODO: call API to decline invite
+        onPress: async () => {
+          if (!inviteId) {
+            Alert.alert(t('invite.not_found'));
+            return;
+          }
+
+          try {
+            await declineInvite(inviteId);
+            if (notification.id) {
+              deleteNotification(notification.id);
+            }
+            setResponded('declined');
+            router.replace('/(tabs)/home');
+          } catch {
+            Alert.alert(t('home.invite_error_title'), t('home.invite_error_message'));
+          }
         },
       },
     ]);
@@ -107,14 +170,22 @@ const InviteDetail = () => {
           <View style={styles.actions}>
             <Pressable
               onPress={handleDecline}
-              style={({ pressed }) => [styles.declineButton, { borderColor: theme['text-hint-color'] + '40', opacity: pressed ? 0.7 : 1 }]}
+              disabled={isAccepting || isDeclining}
+              style={({ pressed }) => [
+                styles.declineButton,
+                { borderColor: theme['text-hint-color'] + '40', opacity: pressed || isAccepting || isDeclining ? 0.7 : 1 },
+              ]}
             >
               <FontAwesome5 name="times" size={14} color={theme['text-hint-color']} />
               <Text style={[styles.declineText, { color: theme['text-hint-color'] }]}>{t('invite.decline')}</Text>
             </Pressable>
             <Pressable
               onPress={handleAccept}
-              style={({ pressed }) => [styles.acceptButton, { backgroundColor: theme['color-primary-500'], opacity: pressed ? 0.85 : 1 }]}
+              disabled={isAccepting || isDeclining}
+              style={({ pressed }) => [
+                styles.acceptButton,
+                { backgroundColor: theme['color-primary-500'], opacity: pressed || isAccepting || isDeclining ? 0.85 : 1 },
+              ]}
             >
               <FontAwesome5 name="check" size={14} color="#FFFFFF" />
               <Text style={styles.acceptText}>{t('invite.accept')}</Text>

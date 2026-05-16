@@ -5,6 +5,11 @@ import { queryClient } from '@/api/queryClient';
 import { Notification } from '@/types/dashboardTypes';
 import { appConfig } from '@/config';
 
+const normalizeNotification = (notification: Notification): Notification => ({
+  ...notification,
+  id: String(notification.id),
+});
+
 /**
  * Maintains a persistent Socket.IO connection while the user is
  * authenticated.  Listens for real-time events and updates the
@@ -15,8 +20,10 @@ export const useSocket = () => {
 
   useEffect(() => {
     let cancelled = false;
+    let tokenPoll: ReturnType<typeof setInterval> | null = null;
 
     const connect = async () => {
+      if (socketRef.current || cancelled) return;
       const token = await AsyncStorage.getItem('token');
       if (!token || cancelled) return;
 
@@ -34,27 +41,21 @@ export const useSocket = () => {
         console.log('[socket] connected', socket.id);
       });
 
-      /* ── Family-invite notification ── */
       socket.on('notification:family_invite', (payload: Notification) => {
-        queryClient.setQueryData<Notification[]>(
-          ['notifications'],
-          (old = []) => {
-            // avoid duplicates
-            if (old.some((n) => n.id === payload.id)) return old;
-            return [payload, ...old];
-          },
-        );
+        const normalized = normalizeNotification(payload);
+        queryClient.setQueryData<Notification[]>(['notifications'], (old = []) => {
+          // avoid duplicates
+          if (old.some((n) => n.id === normalized.id)) return old;
+          return [normalized, ...old];
+        });
       });
 
-      /* ── Generic notification (server can emit for any type) ── */
       socket.on('notification', (payload: Notification) => {
-        queryClient.setQueryData<Notification[]>(
-          ['notifications'],
-          (old = []) => {
-            if (old.some((n) => n.id === payload.id)) return old;
-            return [payload, ...old];
-          },
-        );
+        const normalized = normalizeNotification(payload);
+        queryClient.setQueryData<Notification[]>(['notifications'], (old = []) => {
+          if (old.some((n) => n.id === normalized.id)) return old;
+          return [normalized, ...old];
+        });
       });
 
       socket.on('disconnect', (reason) => {
@@ -62,10 +63,21 @@ export const useSocket = () => {
       });
     };
 
-    connect();
+    const startTokenPoll = () => {
+      if (tokenPoll) return;
+      tokenPoll = setInterval(() => {
+        void connect();
+      }, 2000);
+    };
+
+    void connect();
+    startTokenPoll();
 
     return () => {
       cancelled = true;
+      if (tokenPoll) {
+        clearInterval(tokenPoll);
+      }
       socketRef.current?.disconnect();
       socketRef.current = null;
     };
@@ -73,4 +85,3 @@ export const useSocket = () => {
 
   return socketRef;
 };
-

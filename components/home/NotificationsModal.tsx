@@ -120,7 +120,7 @@ const NotificationsModal = ({ visible, onClose, notifications, onMarkAllRead, on
         ) : (
           <FlatList
             data={notifications}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => String(item.id)}
             renderItem={renderItem}
             showsVerticalScrollIndicator={false}
             style={styles.list}

@@ -2,12 +2,14 @@
   "common": {
     "save": "Salvează",
     "cancel": "Anulează",
-    "delete": "Șterge"
+    "delete": "Șterge",
+    "loading": "Te rugăm să aștepți..."
   },
   "tabs": {
     "home": "Acasă",
     "scan": "Scanare",
     "inventory": "Inventar",
+    "recipes": "Rețete",
     "settings": "Setări"
   },
   "auth": {
@@ -28,6 +30,10 @@
     "error_network": "Nu am putut contacta serverul. Verifică conexiunea și încearcă din nou.",
     "error_invalid_credentials": "Email sau parolă incorecte.",
     "error_login_failed": "Autentificarea a eșuat. Încearcă din nou.",
+    "register_error_title": "Eroare la înregistrare",
+    "login_error_title": "Eroare la autentificare",
+    "error_user_not_found": "Nu am găsit un cont cu aceste credențiale.",
+    "error_user_exists": "Există deja un cont cu acest email. Încearcă să te autentifici.",
     "error_email_in_use": "Există deja un cont cu acest email.",
     "error_register_failed": "Înregistrarea a eșuat. Încearcă din nou."
   },
@@ -48,14 +54,39 @@
     "chart_good": "7 zile",
     "chart_fresh": "Proaspăt",
     "recipe_suggestions": "Sugestii de rețete",
+    "refresh": "Reîmprospătează",
+    "refreshing": "Se reîmprospătează...",
     "see_all": "Vezi toate",
     "ingredients": "ingrediente",
     "family_mode": "Modul Familie",
     "family_hint": "Partajează inventarul cu membrii familiei, astfel încât toți să poată adăuga, edita sau vedea produsele.",
     "invite": "Invită",
+    "invite_title": "Invită un membru al familiei",
+    "invite_subtitle": "Trimite o invitație pe email și va apărea în notificările lui.",
+    "invite_email_label": "Email",
+    "invite_email_placeholder": "nume@example.com",
+    "invite_send": "Trimite invitația",
+    "invite_sending": "Se trimite...",
+    "invite_success_title": "Invitație trimisă",
+    "invite_success_message": "Invitația a fost trimisă către {{email}}.",
+    "invite_error_title": "Invitația a eșuat",
+    "invite_error_message": "Nu am putut trimite invitația. Încearcă din nou.",
+    "invite_invalid_email": "Te rugăm să introduci un email valid.",
     "role_owner": "Proprietar",
     "role_editor": "Editor",
-    "role_viewer": "Vizualizator"
+    "role_viewer": "Vizualizator",
+    "kick": "Elimina",
+    "leave": "Parasește",
+    "kick_confirm_title": "Eliminați membrul?",
+    "kick_confirm_message": "Eliminați {{name}} din gospodărie?",
+    "kick_confirm_action": "Elimina",
+    "kick_error_title": "Eliminare eșuată",
+    "kick_error_message": "Nu am putut elimina acest membru. Încercați din nou.",
+    "leave_confirm_title": "Părăsiți gospodăria?",
+    "leave_confirm_message": "Sigur doriți să părăsiți această gospodărie?",
+    "leave_confirm_action": "Părăsește",
+    "leave_error_title": "Părăsire eșuată",
+    "leave_error_message": "Nu am putut părăsi gospodăria. Încercați din nou."
   },
   "inventory": {
     "title": "Inventarul meu",
@@ -78,7 +109,10 @@
     "purchased": "Cumpărat",
     "expires": "Expiră",
     "generate_recipes": "Generează rețete",
+    "generating_recipes": "Se generează...",
     "generate_recipes_hint": "Obține idei de rețete pe baza acestui ingredient",
+    "generate_error_title": "Rețeta a eșuat",
+    "generate_error_message": "Nu am putut genera o rețetă acum. Încearcă din nou.",
     "remove_product": "Elimină produsul",
     "remove_confirm_title": "Elimină produsul",
     "remove_confirm_message": "Produsul și notificările asociate vor fi șterse definitiv. Această acțiune nu poate fi anulată."
@@ -187,5 +221,14 @@
     "accepted_message": "Te-ai alăturat familiei! Inventarele voastre sunt acum partajate.",
     "declined_message": "Ai refuzat această invitație.",
     "view_invite": "Vezi invitația"
+  },
+  "recipes": {
+    "title": "Rețete",
+    "suggested": "Sugestii",
+    "suggested_empty": "Nu există încă rețete sugerate.",
+    "explore": "Explorează",
+    "explore_empty": "Apasă încarcă mai mult pentru rețete noi.",
+    "load_more": "Încarcă mai mult",
+    "loading_more": "Se încarcă..."
   }
 }

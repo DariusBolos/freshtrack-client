@@ -2,12 +2,14 @@
   "common": {
     "save": "Save",
     "cancel": "Cancel",
-    "delete": "Delete"
+    "delete": "Delete",
+    "loading": "Please wait..."
   },
   "tabs": {
     "home": "Home",
     "scan": "Scan",
     "inventory": "Inventory",
+    "recipes": "Recipes",
     "settings": "Settings"
   },
   "auth": {
@@ -28,6 +30,9 @@
     "error_network": "Could not reach the server. Check your connection and try again.",
     "error_invalid_credentials": "Invalid email or password.",
     "error_login_failed": "Login failed. Please try again.",
+    "register_error_title": "Registration error",
+    "error_user_not_found": "We couldn't find an account with those credentials.",
+    "error_user_exists": "An account with this email already exists. Try logging in.",
     "error_email_in_use": "An account with this email already exists.",
     "error_register_failed": "Registration failed. Please try again.",
     "loading": "Please wait..."
@@ -49,14 +54,39 @@
     "chart_good": "7 days",
     "chart_fresh": "Fresh",
     "recipe_suggestions": "Recipe Suggestions",
+    "refresh": "Refresh",
+    "refreshing": "refreshing",
     "see_all": "See all",
     "ingredients": "items",
     "family_mode": "Family Mode",
     "family_hint": "Share your inventory with family members so everyone can add, edit, or view products.",
     "invite": "Invite",
+    "invite_title": "Invite a family member",
+    "invite_subtitle": "Send an invite by email and they will see it in notifications.",
+    "invite_email_label": "Email",
+    "invite_email_placeholder": "name@example.com",
+    "invite_send": "Send invite",
+    "invite_sending": "Sending...",
+    "invite_success_title": "Invite sent",
+    "invite_success_message": "An invite was sent to {{email}}.",
+    "invite_error_title": "Invite failed",
+    "invite_error_message": "We couldn't send the invite. Please try again.",
+    "invite_invalid_email": "Please enter a valid email address.",
     "role_owner": "Owner",
     "role_editor": "Editor",
-    "role_viewer": "Viewer"
+    "role_viewer": "Viewer",
+    "kick": "Remove",
+    "leave": "Leave",
+    "kick_confirm_title": "Remove member?",
+    "kick_confirm_message": "Remove {{name}} from your household?",
+    "kick_confirm_action": "Remove",
+    "kick_error_title": "Remove failed",
+    "kick_error_message": "We couldn't remove this member. Please try again.",
+    "leave_confirm_title": "Leave household?",
+    "leave_confirm_message": "Are you sure you want to leave this household?",
+    "leave_confirm_action": "Leave",
+    "leave_error_title": "Leave failed",
+    "leave_error_message": "We couldn't leave the household. Please try again."
   },
   "inventory": {
     "title": "My Inventory",
@@ -77,7 +107,10 @@
     "purchased": "Purchased",
     "expires": "Expires",
     "generate_recipes": "Generate Recipes",
+    "generating_recipes": "Generating...",
     "generate_recipes_hint": "Get recipe ideas based on this ingredient",
+    "generate_error_title": "Recipe failed",
+    "generate_error_message": "We couldn't generate a recipe right now. Please try again.",
     "remove_product": "Remove Product",
     "remove_confirm_title": "Remove Product",
     "remove_confirm_message": "This will permanently remove the product and any related notifications. This action cannot be undone."
@@ -185,5 +218,14 @@
     "accepted_message": "You've joined the family! Your inventories are now shared.",
     "declined_message": "You've declined this invite.",
     "view_invite": "View invite"
+  },
+  "recipes": {
+    "title": "Recipes",
+    "suggested": "Suggested",
+    "suggested_empty": "No suggested recipes yet.",
+    "explore": "Explore",
+    "explore_empty": "Tap load more to explore new recipes.",
+    "load_more": "Load more",
+    "loading_more": "Loading..."
   }
 }

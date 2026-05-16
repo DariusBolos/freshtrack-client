@@ -3,7 +3,7 @@ import { useTheme, Layout, Input, Button, Text } from '@ui-kitten/components';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useLogin } from '@/hooks/auth';
-import { TouchableOpacity, StyleSheet, View, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { Alert, TouchableOpacity, StyleSheet, View, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isAxiosError } from 'axios';
@@ -62,6 +62,20 @@ const LoginForm = () => {
 
             if (!err.response) {
               setAuthError(t('auth.error_network'));
+              return;
+            }
+
+            if (err.response.status === 409) {
+              const message = t('auth.error_user_exists');
+              setAuthError(message);
+              Alert.alert(t('auth.login_error_title'), message);
+              return;
+            }
+
+            if (err.response.status === 404) {
+              const message = t('auth.error_user_not_found');
+              setAuthError(message);
+              Alert.alert(t('auth.login_error_title'), message);
               return;
             }
 

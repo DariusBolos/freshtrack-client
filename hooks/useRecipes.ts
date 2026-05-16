@@ -1,27 +1,32 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '@/api/axios';
+import { Recipe } from '@/types/dashboardTypes';
 
-const baseUrl = 'https://api.spoonacular.com/recipes';
+const baseUrl = '/api/recipe-service/recipes';
 
-export const useGetRecipesByIngredients = (ingredients: string[], count: number) => {
+export const useRecipes = () => {
   return useQuery({
-    queryKey: ['recipes', ingredients, count],
-    queryFn: async (): Promise<any[]> => {
-      const response = await api.get<any[]>(
-        `${baseUrl}/findByIngredients?apiKey=${process.env.EXPO_PUBLIC_SPOONACULAR_API_KEY}&ingredients=${ingredients.join(',+')}&number=${count}`,
-      );
-
+    queryKey: ['recipes'],
+    queryFn: async () => {
+      const response = await api.get<Recipe[]>(baseUrl);
       return response.data;
     },
   });
 };
 
-export const useGetRecipeInstructions = (id: string) => {
-  return useQuery({
-    queryKey: [],
-    queryFn: async (): Promise<any[]> => {
-      const response = await api.get<any[]>(`${baseUrl}/${id}/analyzedInstructions?apiKey=${process.env.EXPO_PUBLIC_SPOONACULAR_API_KEY}`);
+export const useRecipeSuggestions = () => {
+  return useMutation({
+    mutationFn: async (count: number = 3) => {
+      const response = await api.post<Recipe[]>(`${baseUrl}/refresh`, { count });
+      return response.data;
+    },
+  });
+};
 
+export const useGenerateRecipe = () => {
+  return useMutation({
+    mutationFn: async (ingredient: string) => {
+      const response = await api.post<Recipe>(`${baseUrl}/single`, { productName: ingredient });
       return response.data;
     },
   });

@@ -1,37 +1,57 @@
 import React, { useState } from 'react';
-import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { Alert, View, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { Text, useTheme } from '@ui-kitten/components';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
+import { useRouter } from 'expo-router';
 import { useSettings } from '@/hooks/useSettings';
 import { useProducts } from '@/hooks/useProducts';
 import { useStats } from '@/hooks/useStats';
-import { MOCK_RECIPES, MOCK_FAMILY } from '@/data/mockDashboard';
+import { useRecipeSuggestions, useRecipes } from '@/hooks/useRecipes';
+import { useFamilyInvite, useHouseholdMembers, useLeaveHousehold, useRemoveHouseholdMember } from '@/hooks/useFamily';
+import { useUserData } from '@/hooks/useUserData';
 import StatCard from '@/components/home/StatCard';
 import ExpiryChart from '@/components/home/ExpiryChart';
 import RecipeCard from '@/components/home/RecipeCard';
 import FamilyMemberRow from '@/components/home/FamilyMemberRow';
 import NotificationsModal from '@/components/home/NotificationsModal';
+import FamilyInviteModal from '@/components/home/FamilyInviteModal';
 import Spinner from '@/components/Spinner';
 import { useNotifications, useMarkNotifications, useDeleteNotification, useExpiryNotificationSync } from '@/hooks/useNotifications';
 import { queryClient } from '@/api/queryClient';
-import { Notification } from '@/types/dashboardTypes';
+import { Notification, Recipe } from '@/types/dashboardTypes';
+import HouseholdMemberActionModal from '@/components/home/HouseholdMemberActionModal';
 
 const HomeTab = () => {
   const { t } = useTranslation();
   const theme = useTheme();
+  const router = useRouter();
   const { firstName, reminderDaysBefore } = useSettings();
 
   const { data: products = [], isLoading: isProductListLoading } = useProducts();
   const { data: stats, isLoading: isStatsLoading } = useStats();
   const { data: notifications = [], isLoading: isNotificationListLoading } = useNotifications();
+  const { data: recipes = [], isLoading: isRecipesLoading } = useRecipes();
+  const { data: householdMembers = [], isLoading: isHouseholdLoading } = useHouseholdMembers();
+  const { data: userData } = useUserData();
+  const {
+    mutateAsync: refreshRecipes,
+    isPending: isRecipesRefreshing,
+  } = useRecipeSuggestions();
+  const { mutateAsync: sendInvite, isPending: isInviteSending } = useFamilyInvite();
+  const { mutateAsync: removeMember, isPending: isRemovingMember } = useRemoveHouseholdMember();
+  const { mutateAsync: leaveHousehold, isPending: isLeavingHousehold } = useLeaveHousehold();
   const { mutate: markNotifications } = useMarkNotifications();
   const { mutate: deleteNotification } = useDeleteNotification();
 
-  // POST expiry notifications for products that don't have one yet
   useExpiryNotificationSync(products, notifications, reminderDaysBefore);
 
   const [notifVisible, setNotifVisible] = useState(false);
+  const [inviteVisible, setInviteVisible] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [suggestedRecipes, setSuggestedRecipes] = useState<Recipe[]>([]);
+  const [memberActionVisible, setMemberActionVisible] = useState(false);
+  const [memberAction, setMemberAction] = useState<{ id: string; name: string; type: 'remove' | 'leave' } | null>(null);
 
   const unreadCount = notifications.filter((notification) => !notification.read).length;
 
@@ -43,7 +63,6 @@ const HomeTab = () => {
     const unreadIds = notifications.filter((n) => !n.read).map((n) => n.id);
     if (unreadIds.length === 0) return;
 
-    // optimistically mark everything read in the cache
     queryClient.setQueryData(['notifications'], (oldNotifications: Notification[] | undefined) => {
       if (!oldNotifications) return [];
       return oldNotifications.map((notification) => ({ ...notification, read: true }));
@@ -51,6 +70,51 @@ const HomeTab = () => {
 
     markNotifications(unreadIds);
   };
+
+  const handleSendInvite = async () => {
+    const email = inviteEmail.trim();
+
+    if (!/\S+@\S+\.\S+/.test(email)) {
+      Alert.alert(t('home.invite_invalid_email'));
+      return;
+    }
+
+    try {
+      await sendInvite({ email });
+      setInviteEmail('');
+      setInviteVisible(false);
+      Alert.alert(t('home.invite_success_title'), t('home.invite_success_message', { email }));
+    } catch {
+      Alert.alert(t('home.invite_error_title'), t('home.invite_error_message'));
+    }
+  };
+
+  const buildMemberName = (first: string, last: string, email: string) => {
+    const combined = `${first ?? ''} ${last ?? ''}`.trim();
+    return combined || email;
+  };
+
+  const getInitials = (label: string) => {
+    const parts = label.trim().split(/\s+/).filter(Boolean);
+    if (parts.length === 0) return label.slice(0, 2).toUpperCase();
+    if (parts.length === 1) return parts[0].slice(0, 2).toUpperCase();
+    return `${parts[0][0]}${parts[1][0]}`.toUpperCase();
+  };
+
+  const familyMembers = householdMembers.map((member) => {
+    const name = buildMemberName(member.firstName, member.lastName, member.email);
+    return {
+      id: String(member.id),
+      name,
+      email: member.email,
+      avatar: getInitials(name),
+      role: member.role ?? (userData?.id === member.id ? 'owner' : 'viewer'),
+    } as const;
+  });
+
+  const currentMember = familyMembers.find((member) => userData?.id && member.id === String(userData.id));
+  const currentRole = currentMember?.role ?? 'viewer';
+  const isOwner = currentRole === 'owner';
 
   const statsSnapshot =
     stats ??
@@ -63,9 +127,43 @@ const HomeTab = () => {
       receiptsScanned: 0,
     } as const);
 
-  if (isProductListLoading || isNotificationListLoading || isStatsLoading) {
+  if (isProductListLoading || isNotificationListLoading || isStatsLoading || isRecipesLoading || isHouseholdLoading) {
     return <Spinner size="medium" />;
   }
+
+  const recipeCards = suggestedRecipes.length > 0 ? suggestedRecipes : recipes;
+
+  const handleMemberPress = (memberId: string, memberName: string, isSelf: boolean) => {
+    if (isOwner && !isSelf) {
+      setMemberAction({ id: memberId, name: memberName, type: 'remove' });
+      setMemberActionVisible(true);
+      return;
+    }
+    if (!isOwner && isSelf) {
+      setMemberAction({ id: memberId, name: memberName, type: 'leave' });
+      setMemberActionVisible(true);
+    }
+  };
+
+  const handleMemberActionConfirm = async () => {
+    if (!memberAction) return;
+    try {
+      if (memberAction.type === 'remove') {
+        await removeMember(memberAction.id);
+      } else {
+        await leaveHousehold();
+        queryClient.invalidateQueries({ queryKey: ['notifications'] });
+      }
+      queryClient.invalidateQueries({ queryKey: ['householdMembers'] });
+      setMemberActionVisible(false);
+      setMemberAction(null);
+    } catch {
+      Alert.alert(
+        memberAction.type === 'remove' ? t('home.kick_error_title') : t('home.leave_error_title'),
+        memberAction.type === 'remove' ? t('home.kick_error_message') : t('home.leave_error_message'),
+      );
+    }
+  };
 
   return (
     <View style={[styles.screen, { backgroundColor: theme['background-basic-color-1'] }]}>
@@ -129,11 +227,26 @@ const HomeTab = () => {
         <View style={styles.sectionSpacing}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme['color-primary-500'] }]}>{t('home.recipe_suggestions')}</Text>
-            <Pressable hitSlop={8}>
-              <Text style={[styles.seeAll, { color: theme['color-primary-500'] }]}>{t('home.see_all')}</Text>
-            </Pressable>
+            <View style={styles.recipeActions}>
+              <Pressable
+                hitSlop={8}
+                onPress={async () => {
+                  const fresh = await refreshRecipes(3);
+                  setSuggestedRecipes(fresh);
+                  queryClient.setQueryData(['recipes'], fresh);
+                }}
+                disabled={isRecipesRefreshing}
+              >
+                <Text style={[styles.refreshText, { color: theme['color-primary-500'] }]}>
+                  {isRecipesRefreshing ? t('home.refreshing') : t('home.refresh')}
+                </Text>
+              </Pressable>
+              <Pressable hitSlop={8} onPress={() => router.push('/recipes')}>
+                <Text style={[styles.seeAll, { color: theme['color-primary-500'] }]}>{t('home.see_all')}</Text>
+              </Pressable>
+            </View>
           </View>
-          {MOCK_RECIPES.map((recipe) => (
+          {recipeCards.map((recipe: Recipe) => (
             <RecipeCard key={recipe.id} recipe={recipe} />
           ))}
         </View>
@@ -141,19 +254,49 @@ const HomeTab = () => {
         <View style={styles.sectionSpacing}>
           <View style={styles.sectionHeader}>
             <Text style={[styles.sectionTitle, { color: theme['color-primary-500'] }]}>{t('home.family_mode')}</Text>
-            <Pressable hitSlop={8} style={[styles.inviteButton, { backgroundColor: theme['color-primary-500'] }]}>
+            <Pressable
+              hitSlop={8}
+              style={[styles.inviteButton, { backgroundColor: theme['color-primary-500'] }]}
+              onPress={() => setInviteVisible(true)}
+            >
               <FontAwesome5 name="user-plus" size={11} color="#FFFFFF" />
               <Text style={styles.inviteText}>{t('home.invite')}</Text>
             </Pressable>
           </View>
           <Text style={[styles.familyHint, { color: theme['text-hint-color'] }]}>{t('home.family_hint')}</Text>
           <View style={[styles.familyCard, { backgroundColor: theme['background-basic-color-2'] }]}>
-            {MOCK_FAMILY.map((member, i) => (
-              <FamilyMemberRow key={member.id} member={member} isLast={i === MOCK_FAMILY.length - 1} />
+            {familyMembers.map((member, i) => (
+              <FamilyMemberRow
+                key={member.id}
+                member={member}
+                isLast={i === familyMembers.length - 1}
+                onPress={() => handleMemberPress(member.id, member.name, member.id === String(userData?.id))}
+                isDisabled={isRemovingMember || isLeavingHousehold}
+              />
             ))}
           </View>
         </View>
       </ScrollView>
+      <HouseholdMemberActionModal
+        visible={memberActionVisible}
+        type={memberAction?.type ?? null}
+        memberName={memberAction?.name ?? ''}
+        onConfirm={handleMemberActionConfirm}
+        onClose={() => {
+          if (isRemovingMember || isLeavingHousehold) return;
+          setMemberActionVisible(false);
+          setMemberAction(null);
+        }}
+        isLoading={isRemovingMember || isLeavingHousehold}
+      />
+      <FamilyInviteModal
+        visible={inviteVisible}
+        email={inviteEmail}
+        onEmailChange={setInviteEmail}
+        onClose={() => setInviteVisible(false)}
+        onSend={handleSendInvite}
+        isSending={isInviteSending}
+      />
       <NotificationsModal
         visible={notifVisible}
         onClose={() => setNotifVisible(false)}
@@ -243,6 +386,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 10,
+  },
+  recipeActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  refreshText: {
+    fontSize: 13,
+    fontWeight: '700',
   },
   seeAll: {
     fontSize: 13,

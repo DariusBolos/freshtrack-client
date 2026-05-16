@@ -8,12 +8,17 @@ import { buildExpiryPayloads, existingExpiryKeys } from '@/utils/notificationUti
 
 const baseUrl = '/api/notifications';
 
+const normalizeNotification = (notification: Notification): Notification => ({
+  ...notification,
+  id: String(notification.id),
+});
+
 export const useNotifications = () => {
   return useQuery({
     queryKey: ['notifications'],
     queryFn: async () => {
       const response = await api.get<Notification[]>(baseUrl);
-      return response.data;
+      return response.data.map(normalizeNotification);
     },
   });
 };
@@ -31,7 +36,7 @@ export const useCreateNotification = () => {
   return useMutation({
     mutationFn: async (payload: CreateNotificationPayload) => {
       const response = await api.post<Notification>(baseUrl, payload);
-      return response.data;
+      return normalizeNotification(response.data);
     },
     onSuccess: (created) => {
       // append the server-returned notification to the cache
@@ -94,4 +99,3 @@ export const useExpiryNotificationSync = (
     }
   }, [products, notifications, reminderDaysBefore, createNotification]);
 };
-

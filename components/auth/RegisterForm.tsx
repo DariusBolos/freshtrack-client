@@ -3,7 +3,7 @@ import { useTheme, Layout, Input, Button, Text } from '@ui-kitten/components';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useRegister } from '@/hooks/auth';
-import { TouchableOpacity, StyleSheet, View, TouchableWithoutFeedback, Keyboard } from 'react-native';
+import { Alert, TouchableOpacity, StyleSheet, View, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import { FontAwesome5 } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { isAxiosError } from 'axios';
@@ -69,21 +69,28 @@ const RegisterForm = () => {
 
             if (backendMessage) {
               setAuthError(backendMessage);
+              Alert.alert(t('auth.register_error_title'), backendMessage);
               return;
             }
 
             if (!err.response) {
-              setAuthError(t('auth.error_network'));
+              const message = t('auth.error_network');
+              setAuthError(message);
+              Alert.alert(t('auth.register_error_title'), message);
               return;
             }
 
             if (err.response.status === 409) {
-              setAuthError(t('auth.error_email_in_use'));
+              const message = t('auth.error_email_in_use');
+              setAuthError(message);
+              Alert.alert(t('auth.register_error_title'), message);
               return;
             }
           }
 
-          setAuthError(t('auth.error_register_failed'));
+          const message = t('auth.error_register_failed');
+          setAuthError(message);
+          Alert.alert(t('auth.register_error_title'), message);
         },
       },
     );

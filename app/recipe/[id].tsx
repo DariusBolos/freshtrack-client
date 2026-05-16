@@ -4,7 +4,8 @@ import { Text, useTheme } from '@ui-kitten/components';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useTranslation } from 'react-i18next';
-import { MOCK_RECIPES } from '@/data/mockDashboard';
+import { useRecipes } from '@/hooks/useRecipes';
+import Spinner from '@/components/Spinner';
 
 const DIFFICULTY_COLORS: Record<string, string> = {
   easy: '#4CAF50',
@@ -18,7 +19,12 @@ const RecipeDetail = () => {
   const theme = useTheme();
   const { t } = useTranslation();
 
-  const recipe = MOCK_RECIPES.find((r) => r.id === id);
+  const { data: recipes = [], isLoading: isRecipesLoading } = useRecipes();
+  const recipe = recipes.find((r) => r.id === id);
+
+  if (isRecipesLoading) {
+    return <Spinner size="medium" />;
+  }
 
   if (!recipe) {
     return (
