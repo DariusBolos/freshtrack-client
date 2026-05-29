@@ -13,3 +13,14 @@ export type RegisterPayload = {
 export type FamilyInvitePayload = {
   email: string;
 };
+
+export type ChangePasswordPayload = {
+  currentPassword: string;
+  newPassword: string;
+};
+
+export type UpdateUserPayload = {
+  firstName: string;
+  lastName: string;
+};
+

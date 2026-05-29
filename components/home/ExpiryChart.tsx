@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { View, StyleSheet } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { Text, useTheme } from '@ui-kitten/components';
 import Svg, { Rect, Text as SvgText } from 'react-native-svg';
 import { FoodProduct } from '@/types/productTypes';
@@ -9,11 +9,13 @@ import { useSettings } from '@/hooks/useSettings';
 
 type Props = {
   products: FoodProduct[];
+  onPress?: () => void;
+  ctaLabel?: string;
 };
 
 const STATUS_ORDER: ExpiryStatus[] = ['expired', 'critical', 'warning', 'good', 'fresh'];
 
-const ExpiryChart: React.FC<Props> = ({ products }) => {
+const ExpiryChart: React.FC<Props> = ({ products, onPress, ctaLabel }) => {
   const theme = useTheme();
   const { t } = useTranslation();
   const { resolvedTheme } = useSettings();
@@ -55,9 +57,16 @@ const ExpiryChart: React.FC<Props> = ({ products }) => {
     fresh: t('home.chart_fresh'),
   };
 
+  const Container = onPress ? Pressable : View;
+
   return (
-    <View style={[styles.container, { backgroundColor: theme['background-basic-color-2'] }]}>
-      <Text style={[styles.title, { color: theme['text-basic-color'] }]}>{t('home.expiry_overview')}</Text>
+    <Container style={[styles.container, { backgroundColor: theme['background-basic-color-2'] }]} onPress={onPress}>
+      <View style={styles.headerRow}>
+        <Text style={[styles.title, { color: theme['text-basic-color'] }]}>{t('home.expiry_overview')}</Text>
+        {onPress && ctaLabel ? (
+          <Text style={[styles.ctaText, { color: theme['color-primary-500'] }]}>{ctaLabel}</Text>
+        ) : null}
+      </View>
       <View style={styles.chartWrapper}>
         <Svg width={chartWidth} height={chartHeight}>
           {buckets.map((bucket, i) => {
@@ -86,7 +95,7 @@ const ExpiryChart: React.FC<Props> = ({ products }) => {
           })}
         </Svg>
       </View>
-    </View>
+    </Container>
   );
 };
 
@@ -98,7 +107,16 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 16,
     fontWeight: '700',
+  },
+  headerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginBottom: 12,
+  },
+  ctaText: {
+    fontSize: 12,
+    fontWeight: '700',
   },
   chartWrapper: {
     alignItems: 'center',

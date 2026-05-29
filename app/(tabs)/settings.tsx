@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { View, ScrollView, Pressable, StyleSheet, Alert } from 'react-native';
-import { Text, useTheme, Modal, Card } from '@ui-kitten/components';
+import { Card, Modal, Text, useTheme } from '@ui-kitten/components';
 import { FontAwesome5 } from '@expo/vector-icons';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
@@ -8,6 +8,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSettings, ThemeMode, Language } from '@/hooks/useSettings';
 import SettingsSection from '@/components/settings/SettingsSection';
 import SettingsRow from '@/components/settings/SettingsRow';
+import { useDeleteAccount } from '@/hooks/useUserMutations';
 import { queryClient } from '@/api/queryClient';
 
 const THEME_OPTIONS: { value: ThemeMode; labelKey: string; icon: string }[] = [
@@ -32,6 +33,7 @@ const SettingsTab = () => {
   const [themeModalVisible, setThemeModalVisible] = useState(false);
   const [langModalVisible, setLangModalVisible] = useState(false);
   const [reminderModalVisible, setReminderModalVisible] = useState(false);
+  const { mutate: deleteAccount } = useDeleteAccount();
 
   const handleLogout = async () => {
     try {
@@ -41,6 +43,19 @@ const SettingsTab = () => {
       queryClient.clear();
       router.replace('/login');
     }
+  };
+
+  const handleDeleteAccount = () => {
+    deleteAccount(undefined, {
+      onSuccess: async () => {
+        await AsyncStorage.removeItem('token');
+        queryClient.clear();
+        router.replace('/login');
+      },
+      onError: () => {
+        Alert.alert(t('settings.delete_account_error_title'), t('settings.delete_account_error_message'));
+      },
+    });
   };
 
   const themeLabelKey = THEME_OPTIONS.find((o) => o.value === settings.themeMode)?.labelKey ?? '';
@@ -60,10 +75,15 @@ const SettingsTab = () => {
             label={t('settings.name')}
             type="press"
             value={`${settings.firstName} ${settings.lastName}`}
-            onPress={() => {}}
+            onPress={() => router.push('/change-name')}
           />
-          <SettingsRow icon="envelope" label={t('settings.email')} type="press" value={settings.userEmail} onPress={() => {}} />
-          <SettingsRow icon="lock" label={t('settings.change_password')} type="press" onPress={() => {}} isLast />
+          <SettingsRow
+            icon="lock"
+            label={t('settings.change_password')}
+            type="press"
+            onPress={() => router.push('/change-password')}
+            isLast
+          />
         </SettingsSection>
 
         <SettingsSection title={t('settings.section_appearance')}>
@@ -129,6 +149,21 @@ const SettingsTab = () => {
               Alert.alert(t('settings.clear_data'), t('settings.clear_data_confirm'), [
                 { text: t('common.cancel'), style: 'cancel' },
                 { text: t('common.delete'), style: 'destructive', onPress: () => {} },
+              ])
+            }
+          />
+          <SettingsRow
+            icon="user-slash"
+            label={t('settings.delete_account')}
+            type="press"
+            onPress={() =>
+              Alert.alert(t('settings.delete_account_confirm_title'), t('settings.delete_account_confirm_message'), [
+                { text: t('common.cancel'), style: 'cancel' },
+                {
+                  text: t('settings.delete_account_confirm_action'),
+                  style: 'destructive',
+                  onPress: handleDeleteAccount,
+                },
               ])
             }
           />
@@ -254,6 +289,7 @@ const SettingsTab = () => {
           ))}
         </Card>
       </Modal>
+
     </View>
   );
 };

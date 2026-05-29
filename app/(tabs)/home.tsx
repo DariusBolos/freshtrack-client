@@ -221,7 +221,34 @@ const HomeTab = () => {
         </View>
 
         <View style={styles.sectionSpacing}>
-          <ExpiryChart products={products!} />
+          <ExpiryChart
+            products={products!}
+            onPress={() => router.push('/expiry-details')}
+            ctaLabel={t('home.view_details')}
+          />
+        </View>
+
+        <View style={styles.sectionSpacing}>
+          <View style={styles.sectionHeader}>
+            <Text style={[styles.sectionTitle, { color: theme['color-primary-500'] }]}>{t('home.food_waste_title')}</Text>
+            <Pressable hitSlop={8} onPress={() => router.push('/food-waste')}>
+              <Text style={[styles.seeAll, { color: theme['color-primary-500'] }]}>{t('home.learn_more')}</Text>
+            </Pressable>
+          </View>
+          <View style={[styles.infoCard, { backgroundColor: theme['background-basic-color-2'] }]}
+          >
+            <View style={styles.infoHeader}>
+              <View style={[styles.infoIcon, { backgroundColor: theme['color-primary-500'] + '18' }]}>
+                <FontAwesome5 name="leaf" size={16} color={theme['color-primary-500']} />
+              </View>
+              <Text style={[styles.infoHeading, { color: theme['text-basic-color'] }]}>
+                {t('home.food_waste_heading')}
+              </Text>
+            </View>
+            <Text style={[styles.infoText, { color: theme['text-hint-color'] }]}>
+              {t('home.food_waste_body')}
+            </Text>
+          </View>
         </View>
 
         <View style={styles.sectionSpacing}>
@@ -399,6 +426,31 @@ const styles = StyleSheet.create({
   seeAll: {
     fontSize: 13,
     fontWeight: '600',
+  },
+  infoCard: {
+    borderRadius: 18,
+    padding: 18,
+    gap: 10,
+  },
+  infoHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  infoIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  infoHeading: {
+    fontSize: 15,
+    fontWeight: '700',
+  },
+  infoText: {
+    fontSize: 14,
+    lineHeight: 20,
   },
 
   statsRow: {
