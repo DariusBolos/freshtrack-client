@@ -2,8 +2,9 @@ import { useQuery, useMutation } from '@tanstack/react-query';
 import { api } from '@/api/axios';
 import { queryClient as qc } from '@/api/queryClient';
 import { FoodProduct } from '@/types/productTypes';
+import { UpdateProductPayload } from '@/types/requestTypes';
 
-const baseUrl = '/api/household/products';
+const baseUrl = '/api/products';
 
 export const useProducts = () => {
   return useQuery({
@@ -42,6 +43,19 @@ export const useDeleteProduct = () => {
       }
     },
     onSettled: () => {
+      qc.invalidateQueries({ queryKey: ['products'] });
+    },
+  });
+};
+
+export const useUpdateProduct = () => {
+  return useMutation({
+    mutationFn: async ({ id, payload }: { id: string; payload: UpdateProductPayload }) => {
+      const response = await api.patch<FoodProduct>(`/api/products/${id}`, payload);
+      return response.data;
+    },
+    onSuccess: (updated, variables) => {
+      qc.setQueryData(['product', variables.id], updated);
       qc.invalidateQueries({ queryKey: ['products'] });
     },
   });

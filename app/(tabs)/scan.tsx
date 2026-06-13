@@ -8,6 +8,7 @@ import { isAxiosError } from 'axios';
 import { useTranslation } from 'react-i18next';
 import { useRouter } from 'expo-router';
 import { useScanReceipt } from '@/hooks/useScan';
+import { useSettings } from '@/hooks/useSettings';
 import { api } from '@/api/axios';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { queryClient } from '@/api/queryClient';
@@ -137,6 +138,7 @@ const ScanTab = () => {
   const theme = useTheme();
   const { t } = useTranslation();
   const router = useRouter();
+  const { resolvedTheme } = useSettings();
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [products, setProducts] = useState<ParsedProduct[]>([]);
   const [scanError, setScanError] = useState<string | null>(null);
@@ -148,6 +150,21 @@ const ScanTab = () => {
   const [unitIndex, setUnitIndex] = useState(new IndexPath(0));
   const [categoryIndex, setCategoryIndex] = useState(new IndexPath(0));
   const scanMutation = useScanReceipt();
+
+  const primaryButtonStyle = {
+    backgroundColor: theme['color-primary-500'],
+    borderColor: theme['color-primary-500'],
+  };
+  const primaryTextStyle = {
+    color: resolvedTheme === 'dark' ? theme['color-basic-100'] : (theme['text-control-color'] ?? theme['color-basic-100']),
+  };
+  const outlineButtonStyle = {
+    borderColor: theme['color-primary-500'],
+    backgroundColor: 'transparent',
+  };
+  const outlineTextStyle = {
+    color: resolvedTheme === 'dark' ? theme['color-basic-100'] : theme['color-primary-500'],
+  };
 
   const hasResults = products.length > 0;
 
@@ -401,19 +418,18 @@ const ScanTab = () => {
         </Card>
 
         <View style={styles.actions}>
-          <Button onPress={handleCapturePhoto} status="success" appearance={imageUri ? 'outline' : 'filled'} style={styles.actionButton}>
-            {imageUri ? t('scan.retake_photo') : t('scan.open_camera')}
+          <Button onPress={handleCapturePhoto} appearance={'outline'} style={[styles.actionButton, outlineButtonStyle]}>
+            <Text style={outlineTextStyle}>{imageUri ? t('scan.retake_photo') : t('scan.open_camera')}</Text>
           </Button>
-          <Button onPress={handleBrowsePhotos} status="success" appearance="outline" style={styles.actionButton}>
-            {t('scan.browse_photos')}
+          <Button onPress={handleBrowsePhotos} appearance="outline" style={[styles.actionButton, outlineButtonStyle]}>
+            <Text style={outlineTextStyle}>{t('scan.browse_photos')}</Text>
           </Button>
           <Button
             onPress={handleGetFoodProducts}
-            status="success"
             disabled={!imageUri || scanMutation.isPending}
-            style={styles.actionButton}
+            style={[styles.actionButton, primaryButtonStyle]}
           >
-            {t('scan.get_food_products')}
+            <Text style={primaryTextStyle}>{t('scan.get_food_products')}</Text>
           </Button>
         </View>
 
@@ -452,8 +468,8 @@ const ScanTab = () => {
                 <Text style={[styles.resultText, { color: theme['text-basic-color'] }]}>{product.name}</Text>
               </Pressable>
             ))}
-            <Button onPress={handleConfirmProducts} disabled={isSaving} status="success" style={styles.actionButton}>
-              {isSaving ? t('scan.saving') : t('scan.confirm')}
+            <Button onPress={handleConfirmProducts} disabled={isSaving} style={[styles.actionButton, primaryButtonStyle]}>
+              <Text style={primaryTextStyle}>{isSaving ? t('scan.saving') : t('scan.confirm')}</Text>
             </Button>
           </View>
         ) : null}

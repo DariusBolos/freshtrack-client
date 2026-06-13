@@ -157,6 +157,14 @@ const ProductDetail = () => {
         <Text style={[styles.recipeHint, { color: theme['text-hint-color'] }]}>{t('product_detail.generate_recipes_hint')}</Text>
 
         <Pressable
+          style={({ pressed }) => [styles.editButton, { backgroundColor: theme['color-primary-500'], opacity: pressed ? 0.85 : 1 }]}
+          onPress={() => router.push(`/product/${id}/edit`)}
+        >
+          <FontAwesome5 name="edit" size={16} color="#FFFFFF" />
+          <Text style={styles.editButtonText}>{t('product_detail.edit_product')}</Text>
+        </Pressable>
+
+        <Pressable
           style={({ pressed }) => [styles.removeButton, { backgroundColor: theme['color-danger-500'], opacity: pressed ? 0.85 : 1 }]}
           onPress={handleRemoveProduct}
         >
@@ -314,6 +322,20 @@ const styles = StyleSheet.create({
     fontSize: 13,
     textAlign: 'center',
     marginTop: 10,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    borderRadius: 14,
+    paddingVertical: 16,
+    marginTop: 18,
+  },
+  editButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
   },
   removeButton: {
     flexDirection: 'row',

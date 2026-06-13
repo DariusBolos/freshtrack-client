@@ -24,3 +24,12 @@ export type UpdateUserPayload = {
   lastName: string;
 };
 
+export type UpdateProductPayload = {
+  name: string;
+  quantity: number;
+  unit: string;
+  purchaseDate: string;
+  expiryDate: string;
+  category: string;
+};
+
